@@ -1,15 +1,15 @@
-##macrofunc tmp() /*
+##macrofunc tmp() 
     ##var(tmp, 0)
-    #define MACRO1 tmp
-    ##var(tmp, tmp + 3) */
-    /*#define MACRO2 tmp
-    */##var(tmp, tmp + MACRO2)
-    #define MACRO3 tmp //hello
+#define MACRO1 tmp
+    ##var(tmp, tmp + 3) 
+#define MACRO2 tmp
+    ##var(tmp, tmp + MACRO2)
+#define MACRO3 tmp 
 
     ##var(cstr, #MACRO3)
-    #define MACRO4 cstr
+#define MACRO4 cstr
     ##var(cstr, L ## #MACRO3)
-    #define MACRO5 cstr
+#define MACRO5 cstr
 
 ##endmacrofunc
 // ...
@@ -25,13 +25,13 @@
 
 ##macrofunc creater(macro_name)
     ##if macro_name == IO_MACRO
-        #define MACRO 0
+#define MACRO 0
     ##elif macro_name == RAND_MACRO
-        #define MACRO 1
+#define MACRO 1
     ##elif macro_name == 100
-        #define MACRO 2
+#define MACRO 2
     ##else
-        #define MACRO 3
+#define MACRO 3
     ##endif
 ##endmacrofunc
 //...
@@ -52,20 +52,22 @@
 */
 
 ##macrofunc create_functions(count)
-    int global[count];
+int global[count];
 
     ##for(VAR, 0, count, 1)
-        void function ## VAR (void) { global[VAR]++; }
+void function ## VAR (void) { global[VAR]++; }
     ##endfor
 
-    void (*global_functions[count])(void) = {
+void (*global_functions[count])(void) = {
+
     ##for(VAR, 0, count, 1)
-        function ## VAR
+    function ## VAR
         ##if VAR != count - 1
-            ,
+    ,
         ##endif
     ##endfor
-    };
+
+};
 ##endmacrofunc
 // ...
 ##integrate create_functions(3)
@@ -85,17 +87,18 @@ function2
 
 ##macrofunc create_functions(row_of_names)
     ##foreach(VAR, row_of_names)
-        void function ## VAR (void) { std::cout << VAR << std::endl; }
+void function ## VAR (void) { std::cout << VAR << std::endl; }
     ##endforeach
 
-    void (*global_functions[__SIZE_LIST__])(void) = {
+void (*global_functions[__SIZE_LIST__])(void) = {
     ##foreach(VAR, row_of_names)
-        function ## VAR
+    function ## VAR
         ##if ! __IS_END_LIST__(row_of_names, VAR)
-            ,
+    ,
         ##endif
     ##endforeach
-    };
+
+};
 ##endmacrofunc
 // ...
 #define ROW 0 1 2
@@ -115,7 +118,7 @@ function2
 ##macrofunc is_macro(list)
     ##foreach(VAR, list)
         ##if ! __IS_MACRO__(row_of_names, VAR)
-            #error "is not macro: " #VAR
+#error "is not macro: " #VAR
         ##endif
     ##endforeach
 ##endmacrofunc
