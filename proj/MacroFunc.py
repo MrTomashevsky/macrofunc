@@ -1,7 +1,11 @@
 from cpp_comments import index
-from getArgs import *
+from MyAlg import *
 
 BEGIN_COMMAND = "##"
+
+
+def CREATE_FUNC_COMMAND(name: str):
+    return name + "Command"
 
 
 class MacroCommand:
@@ -24,7 +28,7 @@ class LineString:
         return f"{self.numb}{spaces}{self.line}"
 
 
-type UnprocessedTextOfMacroFunction = list[LineString]
+type TextMacroFunction = list[LineString]
 
 listMacroCommand = [
     MacroCommand("macrofunc",
@@ -101,35 +105,35 @@ def isIntegrate(line: LineString):
     return indexDirective(line) == (1, -1)
 
 
-# def execute(obj: MacroFunction, args, foutLines: list[str]):
-#     variables = {obj.args[i]: args[i] for i in range(len(args))}
+# # def execute(obj: MacroFunction, args, foutLines: list[str]):
+# #     variables = {obj.args[i]: args[i] for i in range(len(args))}
 
-#     for i in obj.tail:
-#         ind = indexDirective(i)
-#         if ind[0] != -1:
-#             name: str
-#             if ind[1] != -1:
-#                 name = listMacroCommand[ind[0]].endname[ind[1]]
-#             else:
-#                 name = listMacroCommand[ind[0]]
+# #     for i in obj.tail:
+# #         ind = indexDirective(i)
+# #         if ind[0] != -1:
+# #             name: str
+# #             if ind[1] != -1:
+# #                 name = listMacroCommand[ind[0]].endname[ind[1]]
+# #             else:
+# #                 name = listMacroCommand[ind[0]]
 
-#             globals()[CREATE_FUNC_COMMAND(name)]()
-#             break
+# #             globals()[CREATE_FUNC_COMMAND(name)]()
+# #             break
 
-# macroFunctions: ListMacroFunctionsk,
-def integrate(line: LineString, foutLines: list[str]):
-    name, args = getNameAndArgsMacroCommand(line)
+# # macroFunctions: ListMacroFunctionsk,
+# def integrate(line: LineString, foutLines: list[str]):
+#     name, args = getNameAndArgsMacroCommand(line)
 
-    global x
-    x.add_row([name + "(" + args + ")", name + str(getArgs(args))])
+#     global x
+#     x.add_row([name + "(" + args + ")", name + str(getArgs(args))])
 
-    # find = False
-    # for i in macroFunctions:
-    #     if i.name == name and len(i.args) == len(args):
-    #         find = True
-    #         execute(i, args, foutLines)
-    #         break
+#     # find = False
+#     # for i in macroFunctions:
+#     #     if i.name == name and len(i.args) == len(args):
+#     #         find = True
+#     #         execute(i, args, foutLines)
+#     #         break
 
-    # assert find
+#     # assert find
 
-    foutLines.append("has been integrated")
+#     foutLines.append("has been integrated")

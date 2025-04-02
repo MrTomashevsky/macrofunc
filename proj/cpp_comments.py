@@ -1,9 +1,4 @@
-
-def index(line, what):
-    try:
-        return line.index(what)
-    except ValueError:
-        return -1
+from MyAlg import *
 
 
 def indexBeginMultiLineComment(line):

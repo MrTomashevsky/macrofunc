@@ -1,12 +1,12 @@
 import MacroFunc
 import cpp_comments
-from MacroFunc import LineString, UnprocessedTextOfMacroFunction
-from getArgs import *
+from MacroFunc import LineString, TextMacroFunction
+from MyAlg import *
 
 type ListMacroFunction = list[MacroFunction]
 
 
-def initMacroFunction(text: UnprocessedTextOfMacroFunction, macroFunctions: ListMacroFunction):
+def initMacroFunction(text: TextMacroFunction, macroFunctions: ListMacroFunction):
     assert MacroFunc.isBeginMacroFunc(text[0])
     assert MacroFunc.isEndMacroFunc(text[len(text)-1])
 
@@ -19,26 +19,11 @@ def initMacroFunction(text: UnprocessedTextOfMacroFunction, macroFunctions: List
 
     return text
 
-    # def execute( obj: MacroFunction, args, foutLines: list[str]):
-    #     variables = {obj.args[i]: args[i] for i in range(len(args))}
-
-    #     for i in obj.tail:
-    #         ind = indexDirective(i)
-    #         if ind[0] != -1:
-    #             name: str
-    #             if ind[1] != -1:
-    #                 name = listMacroCommand[ind[0]].endname[ind[1]]
-    #             else:
-    #                 name = listMacroCommand[ind[0]]
-
-    #             globals()[CREATE_FUNC_COMMAND(name)]()
-    #             break
-
 
 class MacroFunction:
-    name = ""
-    args = []
-    txt = []
+    name: str = ""
+    args: list[str] = []
+    txt: TextMacroFunction = []
 
     def __str__(self):
         returnValue = self.name + str(self.args) + "\n"
@@ -46,7 +31,7 @@ class MacroFunction:
             returnValue = returnValue + str(j) + "\n"
         return returnValue
 
-    def __init__(self, text: UnprocessedTextOfMacroFunction, macroFunctions: ListMacroFunction):
+    def __init__(self, text: TextMacroFunction, macroFunctions: ListMacroFunction):
         def createHeader(text):
             line = text[0]
             self.name, args = MacroFunc.getNameAndArgsMacroCommand(line)

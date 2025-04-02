@@ -1,0 +1,56 @@
+def macrofuncCommand(self, line : LineString):
+    pass
+
+
+def endmacrofuncCommand(self, line : LineString):
+    pass
+
+
+def integrateCommand(self, line : LineString):
+    pass
+
+
+def ifCommand(self, line : LineString):
+    pass
+
+
+def elifCommand(self, line : LineString):
+    pass
+
+
+def elseCommand(self, line : LineString):
+    pass
+
+
+def endifCommand(self, line : LineString):
+    pass
+
+
+def errorCommand(self, line : LineString):
+    pass
+
+
+def warningCommand(self, line : LineString):
+    pass
+
+
+def varCommand(self, line : LineString):
+    pass
+
+
+def forCommand(self, line : LineString):
+    pass
+
+
+def endforCommand(self, line : LineString):
+    pass
+
+
+def foreachCommand(self, line : LineString):
+    pass
+
+
+def endforeachCommand(self, line : LineString):
+    pass
+
+

@@ -6,13 +6,12 @@ def createFunctions():
     arr = []
 
     def printFunc(i):
-        global arr
         if interp.index(arr, i) == -1:
             arr.append(i)
         else:
             return
 
-        name = interp.CREATE_FUNC_COMMAND(i)
+        name = interp.MacroFunc.CREATE_FUNC_COMMAND(i)
         print(f"def {name}(self, line : LineString):\n    pass\n\n")
 
     for i in interp.MacroFunc.listMacroCommand:
@@ -20,6 +19,8 @@ def createFunctions():
         for j in i.endname:
             printFunc(j)
 
+
+createFunctions()
 
 # string = """
 # print("hello world!")
