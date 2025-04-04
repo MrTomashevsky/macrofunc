@@ -15,11 +15,11 @@ def interp(inputFile, outputFile):
         lines: MacroFunc.TextMacroFunction = [LineString(
             i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
 
-        foutLines = [""]
+        foutLines: list[LineString] = []
 
         MacroExecute.startMacroFunc(lines, macroFunctions, foutLines)
 
-        fout.writelines([i.line+"\n" for i in foutLines])
+        fout.writelines([i.line for i in foutLines])
 
         # print(str(macroFunc))
 

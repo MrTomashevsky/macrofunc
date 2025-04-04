@@ -29,6 +29,7 @@ class LineString:
 
 
 type TextMacroFunction = list[LineString]
+type IndexMacroDirective = tuple[int, int]
 
 listMacroCommand = [
     MacroCommand("macrofunc",
@@ -59,7 +60,7 @@ def getNameAndArgsMacroCommand(line: LineString):
     return name, args
 
 
-def indexDirective(line: LineString) -> tuple[int, int]:
+def indexDirective(line: LineString) -> IndexMacroDirective:
     index: int
     try:
         index = line.line.index(BEGIN_COMMAND)
@@ -90,19 +91,28 @@ def isDirective(line: LineString) -> bool:
     return indexDirective(line) != (-1, -1)
 
 
+def isIndexBeginMacroFunc(index: IndexMacroDirective) -> bool:
+    return index == (0, -1)
+
+
 def isBeginMacroFunc(line: LineString) -> bool:
-    return indexDirective(line) == (0, -1)
+    return isIndexBeginMacroFunc(indexDirective(line))
 
 
-def isEndMacroFunc(line: LineString):
-    return indexDirective(line) == (0, 0)
-
-    # def processing(line: LineString) -> tuple[int, list[str]]:
-    #     pass
+def isIndexEndMacroFunc(index: IndexMacroDirective) -> bool:
+    return index == (0, 0)
 
 
-def isIntegrate(line: LineString):
-    return indexDirective(line) == (1, -1)
+def isEndMacroFunc(line: LineString) -> bool:
+    return isIndexEndMacroFunc(indexDirective(line))
+
+
+def isIndexIntegrate(index: IndexMacroDirective) -> bool:
+    return index == (1, -1)
+
+
+def isIntegrate(line: LineString) -> bool:
+    return isIndexIntegrate(indexDirective(line))
 
 
 # # def execute(obj: MacroFunction, args, foutLines: list[str]):

@@ -11,17 +11,12 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
     text: TextMacroFunction = []
 
     for line in lines:
-        # import os
-        # os.system("clear")
-        # print(f"{i}    {line}")
 
         if MacroFunc.isBeginMacroFunc(line):
-            # if countNoClosedMacroFuncs == 0:
-            #     macroFunctions.append(MacroFunction())
             countNoClosedMacroFuncs += 1
 
         if countNoClosedMacroFuncs == 0 and MacroFunc.isIntegrate(line):
-            integrate(line, foutLines)
+            integrate(macroFunctions, line, foutLines)
 
         if countNoClosedMacroFuncs > 0:
             text.append(line)
@@ -30,16 +25,10 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
                 foutLines.append(line)
 
         if MacroFunc.isEndMacroFunc(line):
-
-            # macroFunctions[len(
-            #     macroFunctions)-1].finalInit(text, macroFunctions)
             macroFunctions.append(MacroFunction(text, macroFunctions))
 
             text = []
             countNoClosedMacroFuncs -= 1
-
-        # print(str(macroFunc))
-        # input("pause")
 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
@@ -53,60 +42,88 @@ class MacroFuncStack:
 
         startMacroFunc(func.txt, macroFunctions, None)
 
+        countNoClosedMacroFuncs = 0
+
+        text: TextMacroFunction = []
+
         for line in func.txt:
+            isSpecDirective = False
             ind = MacroFunc.indexDirective(line)
-            if ind[0] != -1:
+
+            if MacroFunc.isIndexBeginMacroFunc(ind):
+                countNoClosedMacroFuncs += 1
+                isSpecDirective = True
+
+            if countNoClosedMacroFuncs == 0 and MacroFunc.isIndexIntegrate(ind):
+                integrate(line, foutLines)
+                isSpecDirective = True
+
+            if countNoClosedMacroFuncs > 0:
+                text.append(line)
+            else:
+                if foutLines != None:
+                    foutLines.append(line)
+
+            if MacroFunc.isIndexEndMacroFunc(ind):
+                macroFunctions.append(MacroFunction(text, macroFunctions))
+
+                text = []
+                countNoClosedMacroFuncs -= 1
+                isSpecDirective = True
+
+            if not isSpecDirective and ind[0] != -1:
                 name: str
                 if ind[1] != -1:
                     name = MacroFunc.listMacroCommand[ind[0]].endname[ind[1]]
                 else:
-                    name = MacroFunc.listMacroCommand[ind[0]]
+                    name = MacroFunc.listMacroCommand[ind[0]].name
 
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self, line)
-                break
 
-    # def macrofuncCommand(self, line: LineString):
-    #     assert False
+        assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
-    # def endmacrofuncCommand(self, line: LineString):
-    #     pass
+    def macrofuncCommand(self, line: LineString):
+        print("\033[37;2mmacrofuncCommand", str(line), "\033[0m")
 
-    # def integrateCommand(self, line: LineString):
-    #     pass
+    def endmacrofuncCommand(self, line: LineString):
+        print("\033[37;2mendmacrofuncCommand", str(line), "\033[0m")
+
+    def integrateCommand(self, line: LineString):
+        print("\033[37;2mintegrateCommand", str(line), "\033[0m")
 
     def ifCommand(self, line: LineString):
-        pass
+        print("\033[37;2mifCommand", str(line), "\033[0m")
 
     def elifCommand(self, line: LineString):
-        pass
+        print("\033[37;2melifCommand", str(line), "\033[0m")
 
     def elseCommand(self, line: LineString):
-        pass
+        print("\033[37;2melseCommand", str(line), "\033[0m")
 
     def endifCommand(self, line: LineString):
-        pass
+        print("\033[37;2mendifCommand", str(line), "\033[0m")
 
     def errorCommand(self, line: LineString):
-        pass
+        print("\033[37;2merrorCommand", str(line), "\033[0m")
 
     def warningCommand(self, line: LineString):
-        pass
+        print("\033[37;2mwarningCommand", str(line), "\033[0m")
 
     def varCommand(self, line: LineString):
-        pass
+        print("\033[37;2mvarCommand", str(line), "\033[0m")
 
     def forCommand(self, line: LineString):
-        pass
+        print("\033[37;2mforCommand", str(line), "\033[0m")
 
     def endforCommand(self, line: LineString):
-        pass
+        print("\033[37;2mendforCommand", str(line), "\033[0m")
 
     def foreachCommand(self, line: LineString):
-        pass
+        print("\033[37;2mforeachCommand", str(line), "\033[0m")
 
     def endforeachCommand(self, line: LineString):
-        pass
+        print("\033[37;2mendforeachCommand", str(line), "\033[0m")
 
 
 def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString]):
@@ -116,14 +133,21 @@ def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: li
 
     # global x
     # x.add_row([name + "(" + args + ")", name + str(listArgs)])
-
+    print(f"\033[34m{name, listArgs}\033[0m")
     find = False
     for func in macroFunctions:
-        if func.name == name and len(listArgs) == len(args):
+        f1 = func.name == name
+        f2 = len(listArgs) == len(func.args)
+        if f1 and f2:
             find = True
+
             MacroFuncStack(func, listArgs, foutLines, macroFunctions.copy())
             break
 
-    assert find
+    arr = ""
+    for i in macroFunctions:
+        arr += i.determination() + "\n"
 
-    foutLines.append("has been integrated")
+    assert find, f"{name}{listArgs} in\n {arr} not find!"
+
+    # foutLines.append("has been integrated")

@@ -25,6 +25,9 @@ class MacroFunction:
     args: list[str] = []
     txt: TextMacroFunction = []
 
+    def determination(self):
+        return f"{self.name}{self.args}"
+
     def __str__(self):
         returnValue = self.name + str(self.args) + "\n"
         for j in self.txt:
