@@ -30,7 +30,9 @@ def createFunctions():
 # print(isBeginMacroFunc(ls))
 # print(isIndexBeginMacroFunc(ind))
 # print("\033[37;2m{name}\033[0m")
-createFunctions()
+# createFunctions()
+
+print(' '.isspace())
 
 # string = """
 # print("hello world!")

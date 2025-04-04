@@ -12,18 +12,18 @@ def interp(inputFile, outputFile):
     # MacroFunc.x.field_names = ["prev", "next"]
 
     with open(inputFile, "r") as fin, open(outputFile, "w") as fout:
-        lines: MacroFunc.TextMacroFunction = [LineString(
+        lines: MacroFunc.TextMacroFunction = [LineString(0, "")]+[LineString(
             i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
 
         foutLines: list[LineString] = []
 
         MacroExecute.startMacroFunc(lines, macroFunctions, foutLines)
 
-        fout.writelines([i.line for i in foutLines])
+        fout.writelines([i.line+"\n" for i in foutLines])
 
         # print(str(macroFunc))
 
     # print(MacroFunc.x)
 
-    for i in macroFunctions:
-        print(str(i))
+    # for i in macroFunctions:
+    #     print(str(i))

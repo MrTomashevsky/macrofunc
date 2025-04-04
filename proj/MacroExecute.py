@@ -12,6 +12,9 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
     for line in lines:
 
+        if line.numb == 134:
+            pass
+
         if MacroFunc.isBeginMacroFunc(line):
             countNoClosedMacroFuncs += 1
 
@@ -25,9 +28,10 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
                 foutLines.append(line)
 
         if MacroFunc.isEndMacroFunc(line):
-            macroFunctions.append(MacroFunction(text, macroFunctions))
+            if countNoClosedMacroFuncs == 1:
+                macroFunctions.append(MacroFunction(text, macroFunctions))
 
-            text = []
+                text = []
             countNoClosedMacroFuncs -= 1
 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
@@ -55,7 +59,7 @@ class MacroFuncStack:
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs == 0 and MacroFunc.isIndexIntegrate(ind):
-                integrate(line, foutLines)
+                integrate(macroFunctions, line, foutLines)
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs > 0:
@@ -71,7 +75,9 @@ class MacroFuncStack:
                 countNoClosedMacroFuncs -= 1
                 isSpecDirective = True
 
-            if not isSpecDirective and ind[0] != -1:
+            assert ind != MacroFunc.IS_UNKNOWN_DIRECTIVE, f"unknown directive in line {line.numb}: \"{line.line}\""
+
+            if ind != MacroFunc.IS_NOT_DIRECTIVE and not isSpecDirective and ind[0] != -1:
                 name: str
                 if ind[1] != -1:
                     name = MacroFunc.listMacroCommand[ind[0]].endname[ind[1]]

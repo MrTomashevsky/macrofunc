@@ -14,7 +14,7 @@ def initMacroFunction(text: TextMacroFunction, macroFunctions: ListMacroFunction
     text = [i for i in text if not i.line.strip() == ""]
 
     for i in text:
-        if MacroFunc.isDirective(i):
+        if MacroFunc.indexDirective(i) == MacroFunc.IS_NOT_DIRECTIVE:
             i.line = i.line.strip()
 
     return text

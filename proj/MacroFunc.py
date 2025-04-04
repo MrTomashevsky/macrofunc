@@ -31,6 +31,11 @@ class LineString:
 type TextMacroFunction = list[LineString]
 type IndexMacroDirective = tuple[int, int]
 
+
+IS_NOT_DIRECTIVE: IndexMacroDirective = (-2, -2)
+IS_UNKNOWN_DIRECTIVE: IndexMacroDirective = (-1, -1)
+
+
 listMacroCommand = [
     MacroCommand("macrofunc",
                  ["endmacrofunc"]),
@@ -65,30 +70,28 @@ def indexDirective(line: LineString) -> IndexMacroDirective:
     try:
         index = line.line.index(BEGIN_COMMAND)
     except ValueError:
-        return (-1, -1)
+        return IS_NOT_DIRECTIVE
 
     string = line.line[:index]
-    assert not string.isspace() or len(string) != 0, f"\"{string}\""
 
-    tmpLine = line.line[index+len(BEGIN_COMMAND):]
-    for i, j in enumerate(listMacroCommand):
-        try:
-            if tmpLine.index(j.name) == 0:
-                return (i, -1)
-        except ValueError:
-            pass
-        for ii, jj in enumerate(j.endname):
+    if string.isspace() or len(string) == 0:
+        tmpLine = line.line[index+len(BEGIN_COMMAND):]
+
+        for i, j in enumerate(listMacroCommand):
             try:
-                if tmpLine.index(jj) == 0:
-                    return (i, ii)
+                if tmpLine.index(j.name) == 0:
+                    return (i, -1)
             except ValueError:
                 pass
+            for ii, jj in enumerate(j.endname):
+                try:
+                    if tmpLine.index(jj) == 0:
+                        return (i, ii)
+                except ValueError:
+                    pass
 
-    return (-1, -1)
-
-
-def isDirective(line: LineString) -> bool:
-    return indexDirective(line) != (-1, -1)
+        return IS_UNKNOWN_DIRECTIVE
+    return IS_NOT_DIRECTIVE
 
 
 def isIndexBeginMacroFunc(index: IndexMacroDirective) -> bool:
