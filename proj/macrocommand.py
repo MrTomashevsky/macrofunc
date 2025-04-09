@@ -16,7 +16,7 @@ def createFunctions():
 
         name = interp.MacroFunc.CREATE_FUNC_COMMAND(i)
         print(
-            f"def {name}(self, line : LineString):\n    print(\"\\033[37;2m{name}\", str(line), \"\\033[0m\")\n\n")
+            f"def {name}(self, line : LineString, foutLines : list[LineString], ind : int):\n    print(\"\\033[37;2m{name}\", str(line), \"\\033[0m\")\n\n")
 
     for i in interp.MacroFunc.listMacroCommand:
         printFunc(i.name)
