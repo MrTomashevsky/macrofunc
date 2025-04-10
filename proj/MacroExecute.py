@@ -37,12 +37,44 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
 
+class Variables:
+    type VarDict = dict[str, str]
+
+    variables: list[VarDict]
+
+    def __init__(self, variables: VarDict):
+        self.variables = [variables]
+
+    def index(self, var):
+        for i in reversed(self.variables):
+            ind = index(i, var)
+            if ind != -1:
+                return ind
+        return -1
+
+    def append(self, variables: VarDict = {}):
+        self.variables.append(variables)
+
+    def pop(self):
+        self.variables.pop()
+
+    def bask(self):
+        return self.variables[len(self.variables)-1]
+
+
 class MacroFuncStack:
-    variables: dict[str, str]
+    variables: Variables
+
+    line: LineString
+    foutLines: list[LineString]
+
+    def printNameOfCommand(self, name):
+        print("\033[37;2m", name, str(self.line), "\033[0m")
 
     def __init__(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction):
-        self.variables = {func.args[i]: listArgs[i]
-                          for i in range(len(listArgs))}
+        self.variables = Variables({func.args[i]: listArgs[i]
+                                    for i in range(len(listArgs))})
+        self.foutLines = foutLines
 
         startMacroFunc(func.txt, macroFunctions, None)
 
@@ -84,55 +116,65 @@ class MacroFuncStack:
                 else:
                     name = MacroFunc.listMacroCommand[ind[0]].name
 
+                self.line = line.line[line.line.index(
+                    MacroFunc.BEGIN_COMMAND) + len(MacroFunc.BEGIN_COMMAND)+len(name):]
+
+                self.printNameOfCommand(name)
                 getattr(MacroFuncStack,
-                        MacroFunc.CREATE_FUNC_COMMAND(name))(self, line, foutLines, ind + len(name))
+                        MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
-    def macrofuncCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mmacrofuncCommand", str(line), "\033[0m")
+    def macrofuncCommand(self):
         raise Exception("")
 
-    def endmacrofuncCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mendmacrofuncCommand", str(line), "\033[0m")
+    def endmacrofuncCommand(self):
         raise Exception("")
 
-    def integrateCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mintegrateCommand", str(line), "\033[0m")
+    def integrateCommand(self):
         raise Exception("")
 
-    def ifCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mifCommand", str(line), "\033[0m")
+    def ifCommand(self):
+        pass
 
-    def elifCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2melifCommand", str(line), "\033[0m")
+    def elifCommand(self):
+        pass
 
-    def elseCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2melseCommand", str(line), "\033[0m")
+    def elseCommand(self):
+        pass
 
-    def endifCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mendifCommand", str(line), "\033[0m")
+    def endifCommand(self):
+        pass
 
-    def errorCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2merrorCommand", str(line), "\033[0m")
+    def errorCommand(self):
+        pass
 
-    def warningCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mwarningCommand", str(line), "\033[0m")
+        # foutLines.append(LineString(-1, "#ifdef"))
 
-    def varCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mvarCommand", str(line), "\033[0m")
+    def warningCommand(self):
+        pass
 
-    def forCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mforCommand", str(line), "\033[0m")
+    def varCommand(self):
+        pass
 
-    def endforCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mendforCommand", str(line), "\033[0m")
+    def forCommand(self):
+        args = getStripArgs(self.line)
+        assert len(args) == 4, "unknown args in for macrocommand"
 
-    def foreachCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mforeachCommand", str(line), "\033[0m")
+        print(args)
 
-    def endforeachCommand(self, line: LineString, foutLines: list[LineString], ind: int):
-        print("\033[37;2mendforeachCommand", str(line), "\033[0m")
+    def endforCommand(self):
+        pass
+
+    def foreachCommand(self):
+        args = getStripArgs(self.line)
+        assert len(args) == 2, "unknown args in foreach macrocommand"
+
+        print(args)
+        pass
+
+    def endforeachCommand(self):
+        pass
 
 
 def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString]):

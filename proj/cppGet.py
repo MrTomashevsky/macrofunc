@@ -1,21 +1,19 @@
 import subprocess
 
-
-def cppGet(inputFile: str, macroName: str) -> str:
-    with subprocess.Popen(['pwd'], stdout=subprocess.PIPE) as pwd:
-        adress = pwd.stdout.read().decode()[:len(pwd.stdout.read().decode())-1]
-        with subprocess.Popen(['bash', adress + '/cpp_get.bash', inputFile, macroName], stdout=subprocess.PIPE) as proc:
-            stdout = proc.stdout.read().decode()
-            return stdout
+CPP_GET = "/home/tomatik/project/kurs_proj/script/cpp_get.bash"
+CPP_GET_IFDEF = "/home/tomatik/project/kurs_proj/script/cpp_get_ifdef.bash"
 
 
-def cppGetIfdef(inputFile: str, macroName: str) -> bool:
-    with subprocess.Popen(['pwd'], stdout=subprocess.PIPE) as pwd:
-        adress = pwd.stdout.read().decode()[:len(pwd.stdout.read().decode())-1]
-        with subprocess.Popen(['bash', adress + '/cpp_get_ifdef.bash', inputFile, macroName], stdout=subprocess.PIPE) as proc:
-            stdout = proc.stdout.read().decode()
-            return stdout
-# print(cppGet("/home/tomatik/project/kurs_proj/source/cpp.cpp", "ROW"))
+def value(inputFile: str, macroName: str) -> str:
+    with subprocess.Popen(['bash', CPP_GET, inputFile, macroName], stdout=subprocess.PIPE) as proc:
+        stdout = proc.stdout.read().decode()
+        return stdout
 
 
-print(cppGetIfdef("/home/tomatik/project/kurs_proj/cpp_tmp.cpp", "ROW"))
+def isDef(inputFile: str, macroName: str) -> bool:
+    with subprocess.Popen(['bash', CPP_GET_IFDEF, inputFile, macroName], stdout=subprocess.PIPE) as proc:
+        stdout = proc.stdout.read().decode()
+        return stdout == "\n1\n"
+
+
+# print(cppGetIfdef("/home/tomatik/project/kurs_proj/source/cpp_tmp.cpp", "__cplusplus"))

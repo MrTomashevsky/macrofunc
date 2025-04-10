@@ -48,10 +48,10 @@ listMacroCommand = [
     MacroCommand("error",),
     MacroCommand("warning",),
     MacroCommand("var",),
-    MacroCommand("for",
-                 ["endfor"]),
     MacroCommand("foreach",
-                 ["endforeach"])
+                 ["endforeach"]),
+    MacroCommand("for",
+                 ["endfor"])
 ]
 
 

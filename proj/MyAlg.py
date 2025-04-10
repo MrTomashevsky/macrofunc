@@ -47,3 +47,8 @@ def getArgs(args: str) -> list[str]:
     assert countNoClosedQuotes == False, "not closed quotes"
 
     return returnValue
+
+
+def getStripArgs(line: str):
+    args = getArgs(line[1:len(line)-1])
+    return [i.strip() for i in args]

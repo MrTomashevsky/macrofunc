@@ -2,8 +2,16 @@ from clah import Command, Type, Argument, commandLineAgrumentHandler
 import sys
 import interp
 
-argv = ["create", "/home/tomatik/project/kurs_proj/source/cpp.cpp",
-        "/home/tomatik/project/kurs_proj/source/cpp2.cpp"]  # sys.argv[1:]
+argv = ["create",
+        "/home/tomatik/project/kurs_proj/source/cpp.cpp",
+        "/home/tomatik/project/kurs_proj/source/cpp2.cpp"
+        ]  # sys.argv[1:]
+
+
+# argv = ["create",
+#         "/home/tomatik/project/kurs_proj/source/cppMacro.cpp",
+#         "/home/tomatik/project/kurs_proj/source/cppMacro2.cpp"
+#         ]  # sys.argv[1:]
 
 
 def create(args: list):
