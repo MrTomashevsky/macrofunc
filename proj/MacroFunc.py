@@ -118,6 +118,10 @@ def isIntegrate(line: LineString) -> bool:
     return isIndexIntegrate(indexDirective(line))
 
 
+def isDirective(line: LineString) -> bool:
+    return indexDirective(line) != IS_NOT_DIRECTIVE
+
+
 # # def execute(obj: MacroFunction, args, foutLines: list[str]):
 # #     variables = {obj.args[i]: args[i] for i in range(len(args))}
 

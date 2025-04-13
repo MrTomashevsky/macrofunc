@@ -13,4 +13,5 @@ echo -e "\n\n"$2 >> ${tmp_file_name}
 cpp -o ${file_name} ${tmp_file_name}
 rm ${tmp_file_name}
 tail -n $# ${file_name}
+rm ${file_name}
 #

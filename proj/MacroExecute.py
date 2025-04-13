@@ -23,9 +23,8 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
         if countNoClosedMacroFuncs > 0:
             text.append(line)
-        else:
-            if foutLines != None:
-                foutLines.append(line)
+        elif not MacroFunc.isDirective(line) and foutLines != None:
+            foutLines.append(line)
 
         if MacroFunc.isEndMacroFunc(line):
             if countNoClosedMacroFuncs == 1:
@@ -60,9 +59,6 @@ class Variables:
 
     def lastAreaOfVisibility(self):
         return self.variables[len(self.variables)-1]
-
-    def newVariable(self, name: str, value: str):
-        self.lastAreaOfVisibility()[name] = value
 
 
 class MacroFuncStack:
@@ -99,9 +95,6 @@ class MacroFuncStack:
 
             if countNoClosedMacroFuncs > 0:
                 text.append(line)
-            else:
-                if foutLines != None:
-                    foutLines.append(line)
 
             if MacroFunc.isIndexEndMacroFunc(ind):
                 macroFunctions.append(MacroFunction(text, macroFunctions))
@@ -126,25 +119,50 @@ class MacroFuncStack:
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
-            if ind == MacroFunc.IS_UNKNOWN_DIRECTIVE:
-                self.line = line.line
-                self.processingLine()
+            if ind == MacroFunc.IS_NOT_DIRECTIVE:
+
+                foutLines.append(LineString(
+                    line.numb, self.processingLine(line.line)))
 
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
-    def processingLine(self):
-        for view in self.variables.variables:
-            for (var, value) in view:
-                indexVar = self.line.find(var)
-                if indexVar != -1 and not self.line[indexVar-1].isalnum() and not self.line[indexVar+len(var)+1].isalnum():
-                    self.line = self.line[indexVar:] + \
-                        value + self.line[:indexVar+len(var)]
+    def processingLine(self, line: str) -> str:
+        def isalnum(l: str, index: int):
+            return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
 
-        indexResh = 0
+        for view in self.variables.variables:
+            for var in view:
+                if var != view[var]:
+                    indexVar = 0
+                    while indexVar != -1:
+                        indexVar = line.find(var)
+                        if indexVar != -1 and not isalnum(line, indexVar-1) and not isalnum(line, indexVar+len(var)+1):
+
+                            l1 = line[:indexVar]
+                            l2 = view[var]
+                            l3 = line[indexVar+len(var):]
+
+                            revLine = [i for i in reversed(l1)].__str__()
+                            if index(revLine.strip(), "##") == 0:
+                                l1 = l1[len(revLine) - index(revLine, "##"):]
+                            elif index(revLine.strip(), "#") == 0:
+                                l2 = "\""+view[var]+"\""
+
+                            line = l1+l2+l3
+
+        indexResh = index(line, "##")
         while indexResh != -1:
-            indexResh = index(self.line, MacroFunc.BEGIN_COMMAND)
-            self.line = self.line[:indexResh].rstrip(
-            ) + self.line[indexResh+len(MacroFunc.BEGIN_COMMAND):].lstrip()
+            indexResh = index(line, "##")
+            line = line[:indexResh].rstrip(
+            ) + line[indexResh+len("##"):].lstrip()
+
+        # indexResh = index(line, "#")
+        # while indexResh != -1:
+        #     indexResh = index(line, "#")
+        #     line = line[:indexResh].rstrip(
+        #     ) + line[indexResh+len("#"):].lstrip()
+
+        return line
 
     def macrofuncCommand(self):
         raise Exception("")
@@ -167,26 +185,30 @@ class MacroFuncStack:
     def endifCommand(self):
         pass
 
-    def errorCommand(self, foutLines: list[LineString]):
-        self.foutLines.append(
-            LineString(-1, f"#if {self.line}\n   #error \"{self.line}\"\n#endif"))
+    def errorCommand(self):
+        if self.foutLines != None:
+            self.foutLines.append(
+                LineString(-1, f"#if {self.line}\n   #error \"{self.line}\"\n#endif"))
 
     def warningCommand(self):
-        self.foutLines.append(
-            LineString(-1, f"#if {self.line}\n   #warning \"{self.line}\"\n#endif"))
+        if self.foutLines != None:
+            self.foutLines.append(
+                LineString(-1, f"#if {self.line}\n   #warning \"{self.line}\"\n#endif"))
 
     def varCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in for macrocommand"
 
-        self.variables.newVariable(args[0], f"{args[1]}")
+        self.variables.lastAreaOfVisibility(
+        )[args[0]] = self.processingLine(args[1])
 
     def forCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 4, "unknown args in for macrocommand"
 
         self.variables.newAreaOfVisibility()
-        self.variables.newVariable(args[0], f"{args[1]}")
+        self.variables.lastAreaOfVisibility(
+        )[args[0]] = self.processingLine(args[1])
 
         print(args)
 
@@ -199,7 +221,8 @@ class MacroFuncStack:
         assert len(args) == 2, "unknown args in foreach macrocommand"
 
         self.variables.newAreaOfVisibility()
-        self.variables.newVariable(args[0], f"{args[1]}")
+        self.variables.lastAreaOfVisibility(
+        )[args[0]] = self.processingLine(args[1])
 
         print(args)
         pass

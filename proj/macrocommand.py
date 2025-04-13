@@ -33,11 +33,9 @@ def createFunctions():
 # createFunctions()
 
 # print(' '.isspace())
-txt = "     banana     "
-
-x = txt.strip()
-
-print("of all fruits", x, "is my favorite")
+t = "babababa"
+f = str()
+print(f.strip())
 
 # string = """
 # print("hello world!")
