@@ -1,6 +1,13 @@
 from clah import Command, Type, Argument, commandLineAgrumentHandler
 import sys
-import interp
+
+import MacroFunc
+from MacroFunc import LineString
+import MacroFunction
+import MacroExecute
+
+# from prettytable import PrettyTable
+
 
 argv = ["create",
         "/home/tomatik/project/kurs_proj/source/cpp.cpp",
@@ -15,7 +22,26 @@ argv = ["create",
 
 
 def create(args: list):
-    interp.interp(args[0], args[1])
+    macroFunctions: MacroFunction.ListMacroFunction = []
+    # MacroFunc.x = PrettyTable()
+    # MacroFunc.x.field_names = ["prev", "next"]
+
+    with open(args[0], "r") as fin, open(args[1], "w") as fout:
+        lines: MacroFunc.TextMacroFunction = [LineString(0, "")]+[LineString(
+            i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
+
+        foutLines: list[LineString] = []
+
+        MacroExecute.startMacroFunc(lines, macroFunctions, foutLines)
+
+        fout.writelines([i.line+"\n" for i in foutLines])
+
+        # print(str(macroFunc))
+
+    # print(MacroFunc.x)
+
+    # for i in macroFunctions:
+    #     print(str(i))
 
 
 def help(args: list):

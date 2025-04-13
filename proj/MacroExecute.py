@@ -52,20 +52,23 @@ class Variables:
                 return ind
         return -1
 
-    def append(self, variables: VarDict = {}):
+    def newAreaOfVisibility(self, variables: VarDict = {}):
         self.variables.append(variables)
 
-    def pop(self):
+    def deleteAreaOfVisibility(self):
         self.variables.pop()
 
-    def bask(self):
+    def lastAreaOfVisibility(self):
         return self.variables[len(self.variables)-1]
+
+    def newVariable(self, name: str, value: str):
+        self.lastAreaOfVisibility()[name] = value
 
 
 class MacroFuncStack:
     variables: Variables
 
-    line: LineString
+    line: str
     foutLines: list[LineString]
 
     def printNameOfCommand(self, name):
@@ -123,7 +126,25 @@ class MacroFuncStack:
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
+            if ind == MacroFunc.IS_UNKNOWN_DIRECTIVE:
+                self.line = line.line
+                self.processingLine()
+
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
+
+    def processingLine(self):
+        for view in self.variables.variables:
+            for (var, value) in view:
+                indexVar = self.line.find(var)
+                if indexVar != -1 and not self.line[indexVar-1].isalnum() and not self.line[indexVar+len(var)+1].isalnum():
+                    self.line = self.line[indexVar:] + \
+                        value + self.line[:indexVar+len(var)]
+
+        indexResh = 0
+        while indexResh != -1:
+            indexResh = index(self.line, MacroFunc.BEGIN_COMMAND)
+            self.line = self.line[:indexResh].rstrip(
+            ) + self.line[indexResh+len(MacroFunc.BEGIN_COMMAND):].lstrip()
 
     def macrofuncCommand(self):
         raise Exception("")
@@ -146,34 +167,45 @@ class MacroFuncStack:
     def endifCommand(self):
         pass
 
-    def errorCommand(self):
-        pass
-
-        # foutLines.append(LineString(-1, "#ifdef"))
+    def errorCommand(self, foutLines: list[LineString]):
+        self.foutLines.append(
+            LineString(-1, f"#if {self.line}\n   #error \"{self.line}\"\n#endif"))
 
     def warningCommand(self):
-        pass
+        self.foutLines.append(
+            LineString(-1, f"#if {self.line}\n   #warning \"{self.line}\"\n#endif"))
 
     def varCommand(self):
-        pass
+        args = getStripArgs(self.line)
+        assert len(args) == 2, "unknown args in for macrocommand"
+
+        self.variables.newVariable(args[0], f"{args[1]}")
 
     def forCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 4, "unknown args in for macrocommand"
 
+        self.variables.newAreaOfVisibility()
+        self.variables.newVariable(args[0], f"{args[1]}")
+
         print(args)
 
     def endforCommand(self):
+        self.variables.deleteAreaOfVisibility()
         pass
 
     def foreachCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in foreach macrocommand"
 
+        self.variables.newAreaOfVisibility()
+        self.variables.newVariable(args[0], f"{args[1]}")
+
         print(args)
         pass
 
     def endforeachCommand(self):
+        self.variables.deleteAreaOfVisibility()
         pass
 
 

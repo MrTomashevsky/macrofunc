@@ -32,7 +32,12 @@ def createFunctions():
 # print("\033[37;2m{name}\033[0m")
 # createFunctions()
 
-print(' '.isspace())
+# print(' '.isspace())
+txt = "     banana     "
+
+x = txt.strip()
+
+print("of all fruits", x, "is my favorite")
 
 # string = """
 # print("hello world!")
