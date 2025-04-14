@@ -9,8 +9,8 @@ import MacroExecute
 
 
 argv = ["create",
-        "/home/tomatik/project/kurs_proj/source/cpp.cpp",
-        "/home/tomatik/project/kurs_proj/source/cpp2.cpp"
+        "source/cpp.cpp",
+        "source/cpp2.cpp"
         ]  # sys.argv[1:]
 
 

@@ -4,8 +4,8 @@
 import subprocess
 
 # расположение bash-скриптов
-CPP_GET = "/home/tomatik/project/kurs_proj/script/cpp_get.bash"
-CPP_GET_IFDEF = "/home/tomatik/project/kurs_proj/script/cpp_get_ifdef.bash"
+CPP_GET = "script/cpp_get.bash"
+CPP_GET_IFDEF = "script/cpp_get_ifdef.bash"
 
 
 # получить значение макроса
