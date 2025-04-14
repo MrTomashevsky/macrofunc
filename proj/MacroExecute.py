@@ -1,8 +1,9 @@
+# модуль исполнения MacroFunc
+
 import MacroFunc
 from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
-# from MyAlg import *
 
 
 def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString]):
@@ -36,6 +37,7 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
 
+# класс, занимающийся хранением и осуществлением доступа к переменным в разных областях видимости
 class Variables:
     type VarDict = dict[str, str]
 
@@ -44,6 +46,7 @@ class Variables:
     def __init__(self, variables: VarDict):
         self.variables = [variables]
 
+    # найти переменную
     def index(self, var):
         for i in reversed(self.variables):
             ind = index(i, var)
@@ -51,16 +54,20 @@ class Variables:
                 return ind
         return -1
 
+    # добавить новую область видимости
     def newAreaOfVisibility(self, variables: VarDict = {}):
         self.variables.append(variables)
 
+    # выйти из области видимости
     def deleteAreaOfVisibility(self):
         self.variables.pop()
 
+    # доступ к последней области видимости
     def lastAreaOfVisibility(self):
         return self.variables[len(self.variables)-1]
 
 
+# класс исполнения макрофункции
 class MacroFuncStack:
     variables: Variables
 
@@ -126,6 +133,8 @@ class MacroFuncStack:
 
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
+    # функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
+
     def processingLine(self, line: str) -> str:
         def isalnum(l: str, index: int):
             return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
@@ -140,6 +149,7 @@ class MacroFuncStack:
 
                             l1 = line[:indexVar]
                             l2 = view[var]
+
                             l3 = line[indexVar+len(var):]
 
                             revLine = [i for i in reversed(l1)].__str__()
@@ -163,6 +173,8 @@ class MacroFuncStack:
         #     ) + line[indexResh+len("#"):].lstrip()
 
         return line
+
+    # далее представлены функции обработки всех возможных команд MacroFunc
 
     def macrofuncCommand(self):
         raise Exception("")
@@ -232,6 +244,7 @@ class MacroFuncStack:
         pass
 
 
+# исполнение макрофункции
 def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString]):
 
     name, args = MacroFunc.getNameAndArgsMacroCommand(line)

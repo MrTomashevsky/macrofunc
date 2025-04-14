@@ -1,4 +1,7 @@
+# модуль некоторых алгоритмов, которые используются во всех или в большинстве файлов проекта
 
+
+# получить индекс элоемента в массиве; -1 если не найден
 def index(line, what):
     try:
         return line.index(what)
@@ -6,6 +9,8 @@ def index(line, what):
         return -1
 
 
+# парсинг аргументов из строки вида "arg1, arg2, arg3" и тд
+# нуждается в дополнительном тестировании
 def getArgs(args: str) -> list[str]:
     returnValue: list[str] = []
     countNoClosedRoundBracket = 0

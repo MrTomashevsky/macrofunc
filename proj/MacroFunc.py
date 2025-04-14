@@ -1,4 +1,7 @@
-from cpp_comments import index
+# модуль декларации констант и основных типов данных
+
+
+from cppComments import index
 from MyAlg import *
 
 BEGIN_COMMAND = "##"
@@ -8,6 +11,8 @@ def CREATE_FUNC_COMMAND(name: str):
     return name + "Command"
 
 
+# класс названия макрокоманды + список замыкающих ее макрокоманд
+# название функции, осуществляющей обработку макрокоманды, можно получить при помощи CREATE_FUNC_COMMAND(<имя макрокоманды>)
 class MacroCommand:
     name: str
     endname: list[str]
@@ -16,6 +21,7 @@ class MacroCommand:
         self.name, self.endname = name, endname
 
 
+# класс строки с ее номером
 class LineString:
     numb: int
     line: str
@@ -36,6 +42,7 @@ IS_NOT_DIRECTIVE: IndexMacroDirective = (-2, -2)
 IS_UNKNOWN_DIRECTIVE: IndexMacroDirective = (-1, -1)
 
 
+# массив существующих директив
 listMacroCommand = [
     MacroCommand("macrofunc",
                  ["endmacrofunc"]),
@@ -55,6 +62,7 @@ listMacroCommand = [
 ]
 
 
+# получить название макрокоманды + ее аргументы (используется при парсинге macrocofunc и integrate)
 def getNameAndArgsMacroCommand(line: LineString):
     funcWithArgs = line.line[line.line.index(
         BEGIN_COMMAND)+len(BEGIN_COMMAND)+len(listMacroCommand[indexDirective(line)[0]].name):].strip()
@@ -65,6 +73,13 @@ def getNameAndArgsMacroCommand(line: LineString):
     return name, args
 
 
+# парсинг строки с целью поиска в ней директивы
+# если найдена открывающая директива или просто одиночная директива - возврат
+#   tuple(<индекс директивы массиве директив>, -1)
+# если найден директива и при этом она существует - возврат
+#   tuple(<индекс директивы массиве директив>, <индекс закрывающей директивы в массиве закрывающих директив>)
+# если найдена неизвестная директива - возврат IS_UNKNOWN_DIRECTIVE
+# не директива - возврат IS_NOT_DIRECTIVE
 def indexDirective(line: LineString) -> IndexMacroDirective:
     index: int
     try:
@@ -94,63 +109,36 @@ def indexDirective(line: LineString) -> IndexMacroDirective:
     return IS_NOT_DIRECTIVE
 
 
+# true если в массиве директив по индексу находится macrofunc
 def isIndexBeginMacroFunc(index: IndexMacroDirective) -> bool:
     return index == (0, -1)
 
 
+# true если в строке находится macrofunc
 def isBeginMacroFunc(line: LineString) -> bool:
     return isIndexBeginMacroFunc(indexDirective(line))
 
 
+# true если в массиве директив по индексу находится endmacrofunc
 def isIndexEndMacroFunc(index: IndexMacroDirective) -> bool:
     return index == (0, 0)
 
 
+# true если в строке находится endmacrofunc
 def isEndMacroFunc(line: LineString) -> bool:
     return isIndexEndMacroFunc(indexDirective(line))
 
 
+# true если в массиве директив по индексу находится integrate
 def isIndexIntegrate(index: IndexMacroDirective) -> bool:
     return index == (1, -1)
 
 
+# true если в строке находится integrate
 def isIntegrate(line: LineString) -> bool:
     return isIndexIntegrate(indexDirective(line))
 
 
+# true если в строке есть директива
 def isDirective(line: LineString) -> bool:
     return indexDirective(line) != IS_NOT_DIRECTIVE
-
-
-# # def execute(obj: MacroFunction, args, foutLines: list[str]):
-# #     variables = {obj.args[i]: args[i] for i in range(len(args))}
-
-# #     for i in obj.tail:
-# #         ind = indexDirective(i)
-# #         if ind[0] != -1:
-# #             name: str
-# #             if ind[1] != -1:
-# #                 name = listMacroCommand[ind[0]].endname[ind[1]]
-# #             else:
-# #                 name = listMacroCommand[ind[0]]
-
-# #             globals()[CREATE_FUNC_COMMAND(name)]()
-# #             break
-
-# # macroFunctions: ListMacroFunctionsk,
-# def integrate(line: LineString, foutLines: list[str]):
-#     name, args = getNameAndArgsMacroCommand(line)
-
-#     global x
-#     x.add_row([name + "(" + args + ")", name + str(getArgs(args))])
-
-#     # find = False
-#     # for i in macroFunctions:
-#     #     if i.name == name and len(i.args) == len(args):
-#     #         find = True
-#     #         execute(i, args, foutLines)
-#     #         break
-
-#     # assert find
-
-#     foutLines.append("has been integrated")

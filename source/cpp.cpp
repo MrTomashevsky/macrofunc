@@ -6,9 +6,9 @@
     ##var(tmp, tmp + MACRO2)
 #define MACRO3 tmp 
 
-    ##var(cstr, #MACRO3)
+    ##var(cstr, #tmp)
 #define MACRO4 cstr
-    ##var(cstr, L ## #MACRO3)
+    ##var(cstr, L ## #tmp)
 #define MACRO5 cstr
 
 ##endmacrofunc
