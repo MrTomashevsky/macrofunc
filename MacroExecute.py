@@ -4,6 +4,7 @@ import MacroFunc
 from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
+from cppGet import processingLineCppGet
 
 
 def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString]):
@@ -134,7 +135,6 @@ class MacroFuncStack:
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
     # функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
-
     def processingLine(self, line: str) -> str:
         def isalnum(l: str, index: int):
             return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
@@ -148,6 +148,11 @@ class MacroFuncStack:
                         if indexVar != -1 and not isalnum(line, indexVar-1) and not isalnum(line, indexVar+len(var)+1):
 
                             l1 = line[:indexVar]
+                            l2: str
+
+                            # try:
+                            #     l2 = f"{eval(processingLineCppGet(view[var]))}"
+                            # except:
                             l2 = view[var]
 
                             l3 = line[indexVar+len(var):]
@@ -160,17 +165,11 @@ class MacroFuncStack:
 
                             line = l1+l2+l3
 
-        indexResh = index(line, "##")
-        while indexResh != -1:
-            indexResh = index(line, "##")
-            line = line[:indexResh].rstrip(
-            ) + line[indexResh+len("##"):].lstrip()
-
-        # indexResh = index(line, "#")
+        # indexResh = index(line, "##")
         # while indexResh != -1:
-        #     indexResh = index(line, "#")
+        #     indexResh = index(line, "##")
         #     line = line[:indexResh].rstrip(
-        #     ) + line[indexResh+len("#"):].lstrip()
+        #     ) + line[indexResh+len("##"):].lstrip()
 
         return line
 

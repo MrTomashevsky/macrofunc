@@ -4,7 +4,7 @@
 #define MACRO2 0 + 3
 #define MACRO3 0 + 3 + MACRO2
 #define MACRO4 #0 + 3 + MACRO2
-#define MACRO5 L#0 + 3 + MACRO#0 + 3 + MACRO2
+#define MACRO5 L ## #0 + 3 + MACRO2
 /*
 #define MACRO1 0
 #define MACRO2 3
@@ -35,9 +35,9 @@
 
 // ...
 int global[3];
-void function0 (void) { global[0]++;oid function0 (void) { global[0]++; }
+void function ## 0 (void) { global[0]++; }
 void (*global_functions[3])(void) = {
-functionunction0
+function ## 0
 ,
 };
 /*
@@ -57,9 +57,9 @@ function2
 // ...
 #define ROW 0 1 2
 int global[ROW];
-void function0 (void) { global[0]++;oid function0 (void) { global[0]++; }
+void function ## 0 (void) { global[0]++; }
 void (*global_functions[ROW])(void) = {
-functionunction0
+function ## 0
 ,
 };
 /*

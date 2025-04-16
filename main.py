@@ -5,7 +5,6 @@ import MacroFunc
 from MacroFunc import LineString
 import MacroFunction
 import MacroExecute
-# from prettytable import PrettyTable
 
 
 argv = ["create",
@@ -16,8 +15,6 @@ argv = ["create",
 
 def create(args: list):
     macroFunctions: MacroFunction.ListMacroFunction = []
-    # MacroFunc.x = PrettyTable()
-    # MacroFunc.x.field_names = ["prev", "next"]
     foutLines: list[LineString] = []
 
     with open(args[0], "r") as fin:
