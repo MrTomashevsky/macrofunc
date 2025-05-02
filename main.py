@@ -21,7 +21,7 @@ def create(args: list):
         lines: MacroFunc.TextMacroFunction = [LineString(0, "")]+[LineString(
             i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
 
-        MacroExecute.startMacroFunc(lines, macroFunctions, foutLines)
+        MacroExecute.startMacroFunc(lines, macroFunctions, foutLines, args[0])
 
     with open(args[1], "w") as fout:
         fout.writelines([i.line+"\n" for i in foutLines])

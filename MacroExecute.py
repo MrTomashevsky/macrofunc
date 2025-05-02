@@ -5,10 +5,11 @@ from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
 from cppGet import *
-from MacroSpecFunctions import macroSpesFunctions
+from MacroWorkWithVariables import Variables
+from MacroWorkWithVariables import macroSpesFunctions
 
 
-def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString]):
+def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString], inputFileName: str):
     countNoClosedMacroFuncs = 0
 
     text: TextMacroFunction = []
@@ -22,7 +23,7 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
             countNoClosedMacroFuncs += 1
 
         if countNoClosedMacroFuncs == 0 and MacroFunc.isIntegrate(line):
-            integrate(macroFunctions, line, foutLines)
+            integrate(macroFunctions, line, foutLines, inputFileName)
 
         if countNoClosedMacroFuncs > 0:
             text.append(line)
@@ -37,36 +38,6 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
             countNoClosedMacroFuncs -= 1
 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
-
-
-# класс, занимающийся хранением и осуществлением доступа к переменным в разных областях видимости
-class Variables:
-    type VarDict = dict[str, str]
-
-    variables: list[VarDict]
-
-    def __init__(self, variables: VarDict):
-        self.variables = [variables]
-
-    # найти переменную
-    def index(self, var):
-        for i in reversed(self.variables):
-            ind = index(i, var)
-            if ind != -1:
-                return ind
-        return -1
-
-    # добавить новую область видимости
-    def newAreaOfVisibility(self, variables: VarDict = {}):
-        self.variables.append(variables)
-
-    # выйти из области видимости
-    def deleteAreaOfVisibility(self):
-        self.variables.pop()
-
-    # доступ к последней области видимости
-    def lastAreaOfVisibility(self):
-        return self.variables[len(self.variables)-1]
 
 
 # функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
@@ -113,7 +84,7 @@ def processingLine(variables: Variables, line: str) -> str:
 
 
 # processingLine, но работа с cpp и вычисляемым выражением
-def processingLineCppGet(variables: Variables, expr: str) -> str:
+def processingLineCppGet(variables: Variables, expr: str, inputFileName: str) -> str:
     expr = processingLine(variables, expr)
 
     replacement: dict[str, str] = {
@@ -133,7 +104,7 @@ def processingLineCppGet(variables: Variables, expr: str) -> str:
 
     value = None
     try:
-        value = eval(expr, macroSpesFunctions)
+        value = eval(expr, macroSpesFunctions(variables, inputFileName))
     except NameError:
         value = "Error"
 
@@ -149,16 +120,18 @@ class MacroFuncStack:
 
     line: str
     foutLines: list[LineString]
+    inputFileName: str
 
     def printNameOfCommand(self, name):
         print("\033[37;2m", name, str(self.line), "\033[0m")
 
-    def __init__(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction):
+    def __init__(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction, inputFileName: str):
         self.variables = Variables({func.args[i]: listArgs[i]
                                     for i in range(len(listArgs))})
         self.foutLines = foutLines
+        self.inputFileName = inputFileName
 
-        startMacroFunc(func.txt, macroFunctions, None)
+        startMacroFunc(func.txt, macroFunctions, None, inputFileName)
 
         countNoClosedMacroFuncs = 0
 
@@ -221,11 +194,13 @@ class MacroFuncStack:
         raise Exception("")
 
     def ifCommand(self):
-        exprValue = processingLineCppGet(self.variables, self.line)
+        exprValue = processingLineCppGet(
+            self.variables, self.line, self.inputFileName)
         pass
 
     def elifCommand(self):
-        exprValue = processingLineCppGet(self.variables, self.line)
+        exprValue = processingLineCppGet(
+            self.variables, self.line, self.inputFileName)
         pass
 
     def elseCommand(self):
@@ -282,7 +257,7 @@ class MacroFuncStack:
 
 
 # исполнение макрофункции
-def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString]):
+def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString], inputFileName: str):
 
     name, args = MacroFunc.getNameAndArgsMacroCommand(line)
     listArgs = getArgs(args)
@@ -300,7 +275,8 @@ def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: li
         if f1 and f2:
             find = True
 
-            MacroFuncStack(func, listArgs, foutLines, macroFunctions.copy())
+            MacroFuncStack(func, listArgs, foutLines,
+                           macroFunctions.copy(), inputFileName)
             break
 
     arr = ""
