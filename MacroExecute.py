@@ -4,7 +4,8 @@ import MacroFunc
 from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
-from cppGet import processingLineCppGet
+from cppGet import *
+from MacroSpecFunctions import macroSpesFunctions
 
 
 def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString]):
@@ -66,6 +67,80 @@ class Variables:
     # доступ к последней области видимости
     def lastAreaOfVisibility(self):
         return self.variables[len(self.variables)-1]
+
+
+# функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
+def processingLine(variables: Variables, line: str) -> str:
+    def isalnum(l: str, index: int):
+        return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
+
+    for view in variables.variables:
+        for var in view:
+            if var != view[var]:
+                indexVar = 0
+                while indexVar != -1:
+                    indexVar = line.find(var)
+                    if indexVar != -1 and not isalnum(line, indexVar-1) and not isalnum(line, indexVar+len(var)+1):
+
+                        l1 = line[:indexVar]
+                        # l2 = processingLineCppGet(view[var])
+                        l2 = view[var]
+                        l3 = line[indexVar+len(var):]
+
+                        while True:
+                            revLine = l1[::-1].strip()
+                            if index(revLine, "##") == 0:
+                                l1 = l1[:len(l1)-3]
+                                tmpLine = l1.split()
+                                l1 = l1[:len(l1)-1 -
+                                        len(tmpLine[len(tmpLine)-1])]
+                                l2 = tmpLine[len(tmpLine)-1]+l2
+                            elif index(revLine, "#") == 0:
+                                l1 = l1[:len(l1)-2]
+                                l2 = "\""+l2+"\""
+                            else:
+                                break
+
+                        line = l1+l2+l3
+
+    # indexResh = index(line, "##")
+    # while indexResh != -1:
+    #     indexResh = index(line, "##")
+    #     line = line[:indexResh].rstrip(
+    #     ) + line[indexResh+len("##"):].lstrip()
+
+    return line
+
+
+# processingLine, но работа с cpp и вычисляемым выражением
+def processingLineCppGet(variables: Variables, expr: str) -> str:
+    expr = processingLine(variables, expr)
+
+    replacement: dict[str, str] = {
+        "!": " not ",
+        "not =": "!=",
+        "||": " or ",
+        "&&": " and "
+    }
+
+    for i in replacement:
+        while True:
+            indexWord = index(expr, i)
+            if indexWord == -1:
+                break
+            tmpExpr = expr[:indexWord]
+            expr = tmpExpr + replacement[i] + expr[len(tmpExpr)+len(i):]
+
+    value = None
+    try:
+        value = eval(expr, macroSpesFunctions)
+    except NameError:
+        value = "Error"
+
+    print(f"'{expr}' = '{value}'")
+
+    # raise Exception("not work func")
+    return expr
 
 
 # класс исполнения макрофункции
@@ -130,48 +205,9 @@ class MacroFuncStack:
             if ind == MacroFunc.IS_NOT_DIRECTIVE:
 
                 foutLines.append(LineString(
-                    line.numb, self.processingLine(line.line)))
+                    line.numb, processingLine(self.variables, line.line)))
 
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
-
-    # функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
-    def processingLine(self, line: str) -> str:
-        def isalnum(l: str, index: int):
-            return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
-
-        for view in self.variables.variables:
-            for var in view:
-                if var != view[var]:
-                    indexVar = 0
-                    while indexVar != -1:
-                        indexVar = line.find(var)
-                        if indexVar != -1 and not isalnum(line, indexVar-1) and not isalnum(line, indexVar+len(var)+1):
-
-                            l1 = line[:indexVar]
-                            l2: str
-
-                            # try:
-                            #     l2 = f"{eval(processingLineCppGet(view[var]))}"
-                            # except:
-                            l2 = view[var]
-
-                            l3 = line[indexVar+len(var):]
-
-                            revLine = [i for i in reversed(l1)].__str__()
-                            if index(revLine.strip(), "##") == 0:
-                                l1 = l1[len(revLine) - index(revLine, "##"):]
-                            elif index(revLine.strip(), "#") == 0:
-                                l2 = "\""+view[var]+"\""
-
-                            line = l1+l2+l3
-
-        # indexResh = index(line, "##")
-        # while indexResh != -1:
-        #     indexResh = index(line, "##")
-        #     line = line[:indexResh].rstrip(
-        #     ) + line[indexResh+len("##"):].lstrip()
-
-        return line
 
     # далее представлены функции обработки всех возможных команд MacroFunc
 
@@ -185,9 +221,11 @@ class MacroFuncStack:
         raise Exception("")
 
     def ifCommand(self):
+        exprValue = processingLineCppGet(self.variables, self.line)
         pass
 
     def elifCommand(self):
+        exprValue = processingLineCppGet(self.variables, self.line)
         pass
 
     def elseCommand(self):
@@ -199,19 +237,19 @@ class MacroFuncStack:
     def errorCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
-                LineString(-1, f"#if {self.line}\n   #error \"{self.line}\"\n#endif"))
+                LineString(-1, f"#if {self.line.strip()}\n   #error \"{self.line.strip()}\"\n#endif"))
 
     def warningCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
-                LineString(-1, f"#if {self.line}\n   #warning \"{self.line}\"\n#endif"))
+                LineString(-1, f"#if {self.line.strip()}\n   #warning \"{self.line.strip()}\"\n#endif"))
 
     def varCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in for macrocommand"
 
         self.variables.lastAreaOfVisibility(
-        )[args[0]] = self.processingLine(args[1])
+        )[args[0]] = processingLine(self.variables, args[1])
 
     def forCommand(self):
         args = getStripArgs(self.line)
@@ -219,7 +257,7 @@ class MacroFuncStack:
 
         self.variables.newAreaOfVisibility()
         self.variables.lastAreaOfVisibility(
-        )[args[0]] = self.processingLine(args[1])
+        )[args[0]] = processingLine(self.variables, args[1])
 
         print(args)
 
@@ -233,7 +271,7 @@ class MacroFuncStack:
 
         self.variables.newAreaOfVisibility()
         self.variables.lastAreaOfVisibility(
-        )[args[0]] = self.processingLine(args[1])
+        )[args[0]] = processingLine(self.variables, args[1])
 
         print(args)
         pass
@@ -253,7 +291,10 @@ def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: li
     # x.add_row([name + "(" + args + ")", name + str(listArgs)])
     print(f"\033[34m{name, listArgs}\033[0m")
     find = False
-    for func in macroFunctions:
+
+    reversedMacroFunctions = reversed(macroFunctions)
+
+    for func in reversedMacroFunctions:
         f1 = func.name == name
         f2 = len(listArgs) == len(func.args)
         if f1 and f2:

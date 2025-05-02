@@ -3,8 +3,8 @@
 #define MACRO1 0
 #define MACRO2 0 + 3
 #define MACRO3 0 + 3 + MACRO2
-#define MACRO4 #0 + 3 + MACRO2
-#define MACRO5 L ## #0 + 3 + MACRO2
+#define MACRO4 "0 + 3 + MACRO2"
+#define MACRO5 L"0 + 3 + MACRO2"
 /*
 #define MACRO1 0
 #define MACRO2 3
@@ -24,8 +24,8 @@
 
 
 // ...
-#if  sizeof == 4
-   #error " sizeof == 4"
+#if sizeof == 4
+   #error "sizeof == 4"
 #endif
 /*
 #if sizeof(int) == 4
@@ -35,9 +35,9 @@
 
 // ...
 int global[3];
-void function ## 0 (void) { global[0]++; }
+void function0 (void) { global[0]++; }
 void (*global_functions[3])(void) = {
-function ## 0
+function0
 ,
 };
 /*
@@ -56,10 +56,9 @@ function2
 
 // ...
 #define ROW 0 1 2
-int global[ROW];
-void function ## 0 (void) { global[0]++; }
-void (*global_functions[ROW])(void) = {
-function ## 0
+void functionROW (void) { std::cout << ROW << std::endl; }
+void (*global_functions[__SIZE_LIST__])(void) = {
+functionROW
 ,
 };
 /*
@@ -76,7 +75,7 @@ function2
 
 // ...
 #define ROW EOF NULL stdout 400
-#error "is not macro: " #list
+#error "is not macro: ""list"
 /*
 #error "is not macro: 400"
 */
@@ -85,32 +84,32 @@ function2
 
 
 
-#if  text
-   #error " text"
+#if text
+   #error "text"
 #endif
-#if  txt
-   #error " txt"
+#if txt
+   #error "txt"
 #endif
-#if  text
-   #error " text"
+#if text
+   #error "text"
 #endif
-#if  txt
-   #error " txt"
+#if txt
+   #error "txt"
 #endif
-#if  text
-   #error " text"
+#if text
+   #error "text"
 #endif
-#if  txt
-   #error " txt"
+#if txt
+   #error "txt"
 #endif
-#if  text
-   #error " text"
+#if text
+   #error "text"
 #endif
-#if  txt
-   #error " txt"
+#if txt
+   #error "txt"
 #endif
 
 
-#if  v t h
-   #error " v t h"
+#if v t h
+   #error "v t h"
 #endif

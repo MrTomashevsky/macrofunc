@@ -20,7 +20,3 @@ def isDef(inputFile: str, macroName: str) -> bool:
     with subprocess.Popen(['bash', CPP_GET_IFDEF, inputFile, macroName], stdout=subprocess.PIPE) as proc:
         stdout = proc.stdout.read().decode()
         return stdout == "\n1\n"
-
-
-def processingLineCppGet(exp: str):
-    raise Exception("not work func")
