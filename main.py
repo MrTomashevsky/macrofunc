@@ -33,7 +33,8 @@ def help(args: list):
 
 commands = [
     Command("--help", [], help),
-    Command("create", [Argument(Type.FILE), Argument(Type.FILE)], create)
+    Command("create", [Argument(Type.FILE), Argument(Type.FILE)], create),
+    Command("define_string_literals", [Argument(Type.FILE)])
 ]
 
 commandLineAgrumentHandler(argv, commands)

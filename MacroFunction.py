@@ -1,7 +1,7 @@
 # модуль обработки макрофункций
 
 import MacroFunc
-import cppComments
+import cppLanguageInfo
 from MacroFunc import LineString, TextMacroFunction
 from MyAlg import *
 
@@ -41,19 +41,19 @@ class MacroFunction:
                 line = i.line
 
                 if isMultiLineComment:
-                    ind = cppComments.indexEndMultiLineComment(i.line)
+                    ind = cppLanguageInfo.indexEndMultiLineComment(i.line)
                     if ind != -1:
                         isMultiLineComment = False
                         line = line[ind+len(MacroFunc.BEGIN_COMMAND):]
                     else:
                         line = ""
                 else:
-                    ind = cppComments.indexBeginMultiLineComment(i.line)
+                    ind = cppLanguageInfo.indexBeginMultiLineComment(i.line)
                     if ind != -1:
                         isMultiLineComment = True
                         line = line[:ind]
 
-                ind = cppComments.indexSingleLineComment(i.line)
+                ind = cppLanguageInfo.indexSingleLineComment(i.line)
                 if ind != -1:
                     line = line[:ind]
 
