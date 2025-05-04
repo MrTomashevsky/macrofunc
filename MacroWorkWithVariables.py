@@ -1,7 +1,9 @@
 from MyAlg import *
-
+from cppLanguageInfo import is_cstr
 
 # класс, занимающийся хранением и осуществлением доступа к переменным в разных областях видимости
+
+
 class Variables:
     type VarDict = dict[str, str]
 
@@ -31,13 +33,45 @@ class Variables:
         return self.variables[len(self.variables)-1]
 
 
-# здесь будут специальные функции, используемые при парсинге
-
 type MacroVariable = str
 
+# здесь будут специальные функции, используемые при парсинге
 
-def create__IS_VOID__():
-    return ("__IS_VOID__", lambda arg1: arg1 == "")
+
+def is_var(variables: Variables, inputFileName: str):
+    return lambda var: var in variables.variables
+
+
+def __IS_VOID__(variables: Variables, inputFileName: str):
+    return lambda var: not is_var(var) or variables.variables[var] == ""
+
+
+def __IS_INT__(variables: Variables, inputFileName: str):
+    def f(var):
+        if is_var(var):
+            try:
+                i = int(variables.variables[var])
+                return True
+            except ValueError:
+                pass
+        return False
+    return f
+
+
+def __IS_FLOAT__(variables: Variables, inputFileName: str):
+    def f(var):
+        if is_var(var):
+            try:
+                i = float(variables.variables[var])
+                return True
+            except ValueError:
+                pass
+        return False
+    return f
+
+
+def __IS_FLOAT__(variables: Variables, inputFileName: str):
+    return lambda var: is_var(var) and is_cstr(variables.variables[var])
 
 
 """
@@ -63,8 +97,8 @@ def create__IS_VOID__():
 
 
 def macroSpesFunctions(variables: Variables, inputFileName: str) -> dict[str, ]:
-    returnValue: dict[str, ] = {
-        "hello": "world",
-        create__IS_VOID__()
-    }
+    returnValue: dict[str, ] = {}
+
+    returnValue["__IS_VOID__"] = __IS_VOID__(variables, inputFileName)
+
     return returnValue

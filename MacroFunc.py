@@ -1,7 +1,7 @@
 # модуль декларации констант и основных типов данных
 
 
-from cppComments import index
+from cppLanguageInfo import index
 from MyAlg import *
 
 BEGIN_COMMAND = "##"

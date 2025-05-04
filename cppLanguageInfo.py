@@ -1,4 +1,4 @@
-# модуль обработки комментариев С++
+# модуль обработки комментариев и других средств С++
 
 from MyAlg import *
 
@@ -21,3 +21,14 @@ def indexSingleLineComment(line: str) -> int:
 # true если в строке нет комментариев
 def noComments(line: str) -> bool:
     return indexBeginMultiLineComment(line) == indexEndMultiLineComment(line) == indexSingleLineComment(line) == -1
+
+
+permissibleStringLiterals: list[str] = {
+    "L"
+}
+
+
+# true если аргумент является с-строкой
+def is_cstr(var: str, permissibleStringLiterals: list[str]):
+    var = var.strip()
+    return var[-1] == "\"" and (var[0] == "\"" or True in [index(var, i) == 0 and var[len(i)] == "\"" for i in permissibleStringLiterals])
