@@ -1,5 +1,8 @@
 from MyAlg import *
 from cppLanguageInfo import is_cstr
+from MacroFunc import LineString
+import cppGet
+import os
 
 # класс, занимающийся хранением и осуществлением доступа к переменным в разных областях видимости
 
@@ -38,17 +41,33 @@ type MacroVariable = str
 # здесь будут специальные функции, используемые при парсинге
 
 
-def is_var(variables: Variables, inputFileName: str):
-    return lambda var: var in variables.variables
+def is_var(var: MacroVariable, variables: Variables) -> bool:
+    return var in variables.variables
+
+
+def is_macro(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> bool:
+    TMP_FILE_NAME = ".tmp.cpp"
+
+    outputLines = [i.line+"\n" for i in foutLines if i.line !=
+                   "" and not i.line.isspace()]
+    with open(TMP_FILE_NAME, "w") as tmpFile:
+        tmpFile.writelines(outputLines)
+    if not cppGet.isDef(TMP_FILE_NAME, var):
+        for i in foutLines:
+            print(i.numb, " ", i.line)
+        exit()
+    os.remove(TMP_FILE_NAME)
+
+    return True
 
 
 def __IS_VOID__(variables: Variables, inputFileName: str):
-    return lambda var: not is_var(var) or variables.variables[var] == ""
+    return lambda var: not is_var(var, variables) or variables.variables[var] == ""
 
 
 def __IS_INT__(variables: Variables, inputFileName: str):
     def f(var):
-        if is_var(var):
+        if is_var(var, variables):
             try:
                 i = int(variables.variables[var])
                 return True
@@ -60,7 +79,7 @@ def __IS_INT__(variables: Variables, inputFileName: str):
 
 def __IS_FLOAT__(variables: Variables, inputFileName: str):
     def f(var):
-        if is_var(var):
+        if is_var(var, variables):
             try:
                 i = float(variables.variables[var])
                 return True
@@ -70,8 +89,12 @@ def __IS_FLOAT__(variables: Variables, inputFileName: str):
     return f
 
 
-def __IS_FLOAT__(variables: Variables, inputFileName: str):
-    return lambda var: is_var(var) and is_cstr(variables.variables[var])
+def __IS_CSTR__(variables: Variables, inputFileName: str):
+    return lambda var: is_var(var, variables) and is_cstr(variables.variables[var])
+
+
+def __IS_MACRO__(variables: Variables, inputFileName: str, foutLines: list[LineString]):
+    return lambda var: is_var(var, variables) or is_macro(var, inputFileName, foutLines)
 
 
 """
@@ -96,9 +119,11 @@ def __IS_FLOAT__(variables: Variables, inputFileName: str):
 """
 
 
-def macroSpesFunctions(variables: Variables, inputFileName: str) -> dict[str, ]:
+def macroSpesFunctions(variables: Variables, inputFileName: str, foutLines: list[LineString]) -> dict[str, ]:
     returnValue: dict[str, ] = {}
 
-    returnValue["__IS_VOID__"] = __IS_VOID__(variables, inputFileName)
+    # returnValue["__IS_VOID__"] = __IS_VOID__(variables, inputFileName)
+    returnValue["__IS_MACRO__"] = __IS_MACRO__(
+        variables, inputFileName, foutLines)
 
     return returnValue

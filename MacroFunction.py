@@ -25,45 +25,15 @@ class MacroFunction:
             returnValue = returnValue + str(j) + "\n"
         return returnValue
 
-    def __init__(self, text: TextMacroFunction, macroFunctions: ListMacroFunction):
+    def __init__(self, text: TextMacroFunction):
         # получение имени и аргументов
         def createHeader(text):
             line = text[0]
             self.name, args = MacroFunc.getNameAndArgsMacroCommand(line)
             self.args = getArgs(args)
 
-        # удаление с++ комменатриев из макрофункции
-        def deleteComments(text):
-            tmptext = []
-            isMultiLineComment = False
-            ind: int
-            for i in text:
-                line = i.line
-
-                if isMultiLineComment:
-                    ind = cppLanguageInfo.indexEndMultiLineComment(i.line)
-                    if ind != -1:
-                        isMultiLineComment = False
-                        line = line[ind+len(MacroFunc.BEGIN_COMMAND):]
-                    else:
-                        line = ""
-                else:
-                    ind = cppLanguageInfo.indexBeginMultiLineComment(i.line)
-                    if ind != -1:
-                        isMultiLineComment = True
-                        line = line[:ind]
-
-                ind = cppLanguageInfo.indexSingleLineComment(i.line)
-                if ind != -1:
-                    line = line[:ind]
-
-                tmptext.append(LineString(i.numb, line))
-
-            return tmptext
-
-        # удаление macrofunc и endmacrofunc из текста +
         # выполнение strip над строрками без директив
-        def initMacroFunction(text: TextMacroFunction, macroFunctions: ListMacroFunction):
+        def initMacroFunction(text: TextMacroFunction):
             assert MacroFunc.isBeginMacroFunc(text[0])
             assert MacroFunc.isEndMacroFunc(text[len(text)-1])
 
@@ -76,6 +46,5 @@ class MacroFunction:
 
             return text
 
-        text = deleteComments(text)
         createHeader(text)
-        self.txt = initMacroFunction(text, macroFunctions)
+        self.txt = initMacroFunction(text)

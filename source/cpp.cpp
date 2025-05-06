@@ -1,4 +1,4 @@
-##macrofunc tmp() 
+/*##macrofunc tmp() 
     ##var(tmp, 0)
 #define MACRO1 tmp
     ##var(tmp, tmp + 3) 
@@ -22,7 +22,15 @@
 #define MACRO5 L"6"
 */
 
+##macrofunc is_macro(macro)
+    ##if __IS_MACRO__(macro)
+    ##endif
+##endmacrofunc
 
+#define MACRO 9
+##integrate is_macro(MACRO)
+
+/*
 ##macrofunc creater(macro_name)
     ##if macro_name == IO_MACRO
 #define MACRO 0

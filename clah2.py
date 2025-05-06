@@ -73,12 +73,12 @@ class Key:
 def indexKey(arg: str, keys: list[Key]) -> int:
     isLong: bool
 
-    if len(arg) >= 1 and arg[0] == '-':
-        arg = arg[1:]
-        isLong = False
-    elif len(arg) >= 2 and arg[0] == arg[1] == '-':
+    if len(arg) >= 2 and arg[0] == arg[1] == '-':
         arg = arg[2:]
         isLong = True
+    elif len(arg) >= 1 and arg[0] == '-':
+        arg = arg[1:]
+        isLong = False
     else:
         return -1
 
@@ -146,9 +146,15 @@ class Command:
                         i += self.types[indexType](functionArgs, argv[i:])
                         indexType += 1
                     assert indexType == len(self.types) and i == len(
-                        argv), f"'{self.name}': the number of specified arguments is not equal to the amount of expected"
+                        argv), f"'{self.name}({argv})': the number of specified arguments is not equal to the amount of expected"
 
-        assert readArguments, f"no read type for '{self.name}'"
+        if (len(self.types) != 0):
+            error: str
+            if self.name == None:
+                error = "no arguments for command"
+            else:
+                error = f"no arguments for '{self.name}'"
+            assert readArguments, error
 
         if self.function != None:
             self.function(functionArgs)

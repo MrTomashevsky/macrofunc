@@ -32,7 +32,7 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
         if MacroFunc.isEndMacroFunc(line):
             if countNoClosedMacroFuncs == 1:
-                macroFunctions.append(MacroFunction(text, macroFunctions))
+                macroFunctions.append(MacroFunction(text))
 
                 text = []
             countNoClosedMacroFuncs -= 1
@@ -40,7 +40,7 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
     assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
 
-# функция обработки бездиррективной строки (вставка значений перемнных, объединение лексем и тд)
+# функция обработки бездиррективной строки (вставка значений переменных, объединение лексем и тд)
 def processingLine(variables: Variables, line: str) -> str:
     def isalnum(l: str, index: int):
         return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
@@ -84,12 +84,12 @@ def processingLine(variables: Variables, line: str) -> str:
 
 
 # processingLine, но работа с cpp и вычисляемым выражением
-def processingLineCppGet(variables: Variables, expr: str, inputFileName: str) -> str:
-    expr = processingLine(variables, expr)
+def processingLineCppGet(variables: Variables, expr: str, inputFileName: str, foutLines: list[LineString]) -> str:
+    # expr = processingLine(variables, expr)
 
     replacement: dict[str, str] = {
         "!": " not ",
-        "not =": "!=",
+        "not =": "!=",  # эта строка сбрасывает '!='->'not ='
         "||": " or ",
         "&&": " and "
     }
@@ -104,11 +104,14 @@ def processingLineCppGet(variables: Variables, expr: str, inputFileName: str) ->
 
     value = None
     try:
-        value = eval(expr, macroSpesFunctions(variables, inputFileName))
-    except NameError:
-        value = "Error"
+        funcs = macroSpesFunctions(
+            variables, inputFileName, foutLines)
+        vars = {j: i[j] for i in variables.variables for j in i}
+        value = eval(expr, funcs, vars)
+    except NameError as ne:
+        value = f"\033[31mError:{ne}\033[0m"
 
-    print(f"'{expr}' = '{value}'")
+    print(f"'{expr}' = {value}")
 
     # raise Exception("not work func")
     return expr
@@ -146,14 +149,14 @@ class MacroFuncStack:
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs == 0 and MacroFunc.isIndexIntegrate(ind):
-                integrate(macroFunctions, line, foutLines)
+                integrate(macroFunctions, line, foutLines, inputFileName)
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs > 0:
                 text.append(line)
 
             if MacroFunc.isIndexEndMacroFunc(ind):
-                macroFunctions.append(MacroFunction(text, macroFunctions))
+                macroFunctions.append(MacroFunction(text))
 
                 text = []
                 countNoClosedMacroFuncs -= 1
@@ -195,12 +198,12 @@ class MacroFuncStack:
 
     def ifCommand(self):
         exprValue = processingLineCppGet(
-            self.variables, self.line, self.inputFileName)
+            self.variables, self.line, self.inputFileName, self.foutLines)
         pass
 
     def elifCommand(self):
         exprValue = processingLineCppGet(
-            self.variables, self.line, self.inputFileName)
+            self.variables, self.line, self.inputFileName, self.foutLines)
         pass
 
     def elseCommand(self):

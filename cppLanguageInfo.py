@@ -23,6 +23,7 @@ def noComments(line: str) -> bool:
     return indexBeginMultiLineComment(line) == indexEndMultiLineComment(line) == indexSingleLineComment(line) == -1
 
 
+# переменная хранит информацию об текущих допусчтимых объявлениях литералов строк
 permissibleStringLiterals: list[str] = {
     "L"
 }

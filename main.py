@@ -1,19 +1,16 @@
-from clah import Command, Type, Argument, commandLineAgrumentHandler
+from clah2 import *
 import sys
 
 import MacroFunc
 from MacroFunc import LineString
 import MacroFunction
 import MacroExecute
+import cppLanguageInfo
+
+stdout = None
 
 
-argv = ["create",
-        "source/cpp.cpp",
-        "source/cpp2.cpp"
-        ]  # sys.argv[1:]
-
-
-def create(args: list):
+def process(args: list):
     macroFunctions: MacroFunction.ListMacroFunction = []
     foutLines: list[LineString] = []
 
@@ -21,20 +18,100 @@ def create(args: list):
         lines: MacroFunc.TextMacroFunction = [LineString(0, "")]+[LineString(
             i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
 
+        # удаление с++ комменатриев из макрофункции
+        def deleteComments(text):
+            tmptext = []
+            isMultiLineComment = False
+            ind: int
+            for i in text:
+                line = i.line
+
+                if isMultiLineComment:
+                    ind = cppLanguageInfo.indexEndMultiLineComment(i.line)
+                    if ind != -1:
+                        isMultiLineComment = False
+                        line = line[ind+len(MacroFunc.BEGIN_COMMAND):]
+                    else:
+                        line = ""
+                else:
+                    ind = cppLanguageInfo.indexBeginMultiLineComment(i.line)
+                    if ind != -1:
+                        isMultiLineComment = True
+                        line = line[:ind]
+
+                ind = cppLanguageInfo.indexSingleLineComment(i.line)
+                if ind != -1:
+                    line = line[:ind]
+
+                tmptext.append(LineString(i.numb, line))
+
+            return tmptext
+
+        lines = deleteComments(lines)
+
+        # for line in lines:
+        #     print(line.numb, " ", line.line)
+        # exit()
         MacroExecute.startMacroFunc(lines, macroFunctions, foutLines, args[0])
 
-    with open(args[1], "w") as fout:
-        fout.writelines([i.line+"\n" for i in foutLines])
+    outputLines = [i.line+"\n" for i in foutLines if not i.line.isspace()
+                   and i.line != ""]
+
+    if stdout == None:
+        sys.stdout.writelines(outputLines)
+    else:
+        with open(stdout, "w") as fout:
+            fout.writelines(outputLines)
 
 
 def help(args: list):
-    pass
+    nameProg = "MacroFunc"  # sys.argv[0]
+    blueBegin = "\033[34;1m"
+    end = "\033[0m"
+    print(
+        f"""{blueBegin}Использование:{end}
+  {nameProg} [ключи] файл.
+
+{blueBegin}Описание:{end}
+  {nameProg} - это программа интерпретатора MacroFunc. На вход подаётся обрабатываемый файл.
+
+{blueBegin}Ключи:{end}
+  -h, --help                             Вывести справку.
+  --def_cstr_literals <файл>             Расположение файла литералов с-строк.
+  -o <файл>                              Направить вывод в файл.
+
+{blueBegin}Автор:{end}
+  Никита Томашевский, 2025, https://github.com/MrTomashevsky/macrofunc
+""")
+    exit(0)
 
 
-commands = [
-    Command("--help", [], help),
-    Command("create", [Argument(Type.FILE), Argument(Type.FILE)], create),
-    Command("define_string_literals", [Argument(Type.FILE)])
-]
+def o(args: list):
+    global stdout
+    stdout = args[0]
 
-commandLineAgrumentHandler(argv, commands)
+
+def def_cstr_literals(args: list):
+    with open(args[0], "r") as fin:
+        cppLanguageInfo.permissibleStringLiterals = [
+            i.strip().replace("\n", "") for i in fin.readlines() if not i.isspace() and i != ""]
+
+
+main = Command(
+    None,
+    [Key("help", "h", [], help),
+     Key("def_cstr_literals", None, [PrimitiveType.FILE], def_cstr_literals),
+     Key(None, "o", [Type.STRING], o)],
+    [Type.FILE],
+    [],
+    process
+)
+
+# main.commands.append(main)
+
+
+if __name__ == "__main__":
+    # try:
+    main(sys.argv[1:])
+    # except Exception as ex:
+    # print(f"\033[31m{ex}\033[0m")
