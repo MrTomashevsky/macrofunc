@@ -67,13 +67,15 @@ def process(args: list):
 def help(args: list):
     nameProg = "MacroFunc"  # sys.argv[0]
     blueBegin = "\033[34;1m"
+    greenBegin = "\033[32;1;2m"
+    macroFuncBegin = greenBegin
     end = "\033[0m"
     print(
         f"""{blueBegin}Использование:{end}
-  {nameProg} [ключи] файл.
+  {macroFuncBegin}{nameProg}{end}[ключи] файл.
 
 {blueBegin}Описание:{end}
-  {nameProg} - это программа интерпретатора MacroFunc. На вход подаётся обрабатываемый файл.
+  {macroFuncBegin}{nameProg}{end} - это программа интерпретатора {macroFuncBegin}MacroFunc{end}. На вход подаётся обрабатываемый файл.
 
 {blueBegin}Ключи:{end}
   -h, --help                             Вывести справку.
@@ -81,8 +83,7 @@ def help(args: list):
   -o <файл>                              Направить вывод в файл.
 
 {blueBegin}Автор:{end}
-  Никита Томашевский, 2025, https://github.com/MrTomashevsky/macrofunc
-""")
+  Никита Томашевский, 2025, https://github.com/MrTomashevsky/macrofunc""")
     exit(0)
 
 
@@ -111,7 +112,7 @@ main = Command(
 
 
 if __name__ == "__main__":
-    # try:
-    main(sys.argv[1:])
-    # except Exception as ex:
-    # print(f"\033[31m{ex}\033[0m")
+    try:
+        main(sys.argv[1:])
+    except Exception as ex:
+        print(f"\033[31m{ex}\033[0m")

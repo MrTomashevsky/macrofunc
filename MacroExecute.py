@@ -6,7 +6,23 @@ from MacroFunction import *
 from MyAlg import *
 from cppGet import *
 from MacroWorkWithVariables import Variables
-from MacroWorkWithVariables import macroSpesFunctions
+from MacroWorkWithVariables import macroSpesFunctions, is_macro, macro_value
+
+
+def toRealType(s: str):
+    for i in ["int", "float"]:
+        try:
+            return eval(f"{i}(string)", {}, {"string": s})
+        except ValueError:
+            pass
+    return s
+
+    # # проверка
+    # from MacroExecute import toRealType
+    # def realType(arg):
+    #     return toRealType(arg), type(toRealType(arg))
+    # for i in ["100", "100.9", "hello world", "[]"]:
+    #     print(realType(i))
 
 
 def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, foutLines: list[LineString], inputFileName: str):
@@ -23,7 +39,7 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
             countNoClosedMacroFuncs += 1
 
         if countNoClosedMacroFuncs == 0 and MacroFunc.isIntegrate(line):
-            integrate(macroFunctions, line, foutLines, inputFileName)
+            integrate(macroFunctions, line, foutLines, inputFileName, True)
 
         if countNoClosedMacroFuncs > 0:
             text.append(line)
@@ -106,12 +122,12 @@ def processingLineCppGet(variables: Variables, expr: str, inputFileName: str, fo
     try:
         funcs = macroSpesFunctions(
             variables, inputFileName, foutLines)
-        vars = {j: i[j] for i in variables.variables for j in i}
+        vars = {j: toRealType(i[j]) for i in variables.variables for j in i}
         value = eval(expr, funcs, vars)
     except NameError as ne:
-        value = f"\033[31mError:{ne}\033[0m"
+        value = f"\033[31m{ne}\033[0m"
 
-    print(f"'{expr}' = {value}")
+    print(f"'{expr}' = \033[32m{value}\033[0m")
 
     # raise Exception("not work func")
     return expr
@@ -128,9 +144,17 @@ class MacroFuncStack:
     def printNameOfCommand(self, name):
         print("\033[37;2m", name, str(self.line), "\033[0m")
 
-    def __init__(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction, inputFileName: str):
-        self.variables = Variables({func.args[i]: listArgs[i]
-                                    for i in range(len(listArgs))})
+    def __init__(self):
+        pass
+
+    def initWithListArgs(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction, inputFileName: str):
+        variables = Variables({func.args[i]: listArgs[i]
+                               for i in range(len(listArgs))})
+        return self.initWithVariables(func, variables, foutLines, macroFunctions, inputFileName)
+
+    def initWithVariables(self, func: MacroFunction, variables: Variables, foutLines: list[LineString], macroFunctions: ListMacroFunction, inputFileName: str):
+        self.variables = variables
+
         self.foutLines = foutLines
         self.inputFileName = inputFileName
 
@@ -259,8 +283,20 @@ class MacroFuncStack:
         pass
 
 
+def getVariablesWithCppGet(func: MacroFunction, listArgs: list[str], inputFileName: str, foutLines: list[LineString]):
+    def cppGetVariable(varValue):
+        if is_macro(varValue, inputFileName, foutLines):
+            return macro_value(varValue, inputFileName, foutLines)
+        return varValue
+
+    variables = Variables({func.args[i]: cppGetVariable(listArgs[i])
+                           for i in range(len(listArgs))})
+    return variables
+
 # исполнение макрофункции
-def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString], inputFileName: str):
+
+
+def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString], inputFileName: str, getMacroWithCppGet=False):
 
     name, args = MacroFunc.getNameAndArgsMacroCommand(line)
     listArgs = getArgs(args)
@@ -278,8 +314,16 @@ def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: li
         if f1 and f2:
             find = True
 
-            MacroFuncStack(func, listArgs, foutLines,
-                           macroFunctions.copy(), inputFileName)
+            execute = MacroFuncStack()
+
+            if getMacroWithCppGet:
+                variables = getVariablesWithCppGet(
+                    func, listArgs, inputFileName, foutLines)
+                execute.initWithVariables(
+                    func, variables, foutLines, macroFunctions.copy(), inputFileName)
+            else:
+                execute.initWithListArgs(
+                    func, listArgs, foutLines, macroFunctions.copy(), inputFileName)
             break
 
     arr = ""

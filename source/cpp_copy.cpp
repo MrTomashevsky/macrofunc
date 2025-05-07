@@ -1,4 +1,4 @@
-/*##macrofunc tmp() 
+##macrofunc tmp() 
     ##var(tmp, 0)
 #define MACRO1 tmp
     ##var(tmp, tmp + 3) 
@@ -14,11 +14,6 @@
 ##endmacrofunc
 // ...
 ##integrate tmp()
-
-*/
-
-#include <algorithm>
-
 /*
 #define MACRO1 0
 #define MACRO2 3
@@ -26,7 +21,8 @@
 #define MACRO4 "6"
 #define MACRO5 L"6"
 */
-/*
+
+
 ##macrofunc creater(macro_name)
     ##if macro_name == IO_MACRO
 #define MACRO 0
@@ -55,7 +51,6 @@
 #endif
 */
 
-/*
 ##macrofunc create_functions(count)
 int global[count];
 
