@@ -2,8 +2,7 @@ from MyAlg import *
 from cppLanguageInfo import is_cstr
 from MacroFunc import LineString
 import cppGet
-import os
-import random
+import tempfile
 
 
 class MacroVariablesException(Exception):
@@ -49,40 +48,20 @@ def is_var(var: MacroVariable, variables: Variables) -> bool:
     return var in variables.variables
 
 
-class TmpWriteFile:
-    fileName: str
-    file: None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is not None:
-            print(f"An exception occurred: {exc_val}")
-        return False
-
-    def __init__(self, fileName, outputLines):
-        self.fileName = fileName
-        try:
-            self.file = open(fileName, "w")
-        except Exception as ex:
-            print(ex)
-        self.file.writelines(outputLines)
-        self.file.flush()
-
-    def __del__(self):
-        self.file.close()
-        os.remove(self.fileName)
-
-
 def macro_value(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> str:
-    with TmpWriteFile("tmp.cpp", [i.line+"\n" for i in foutLines if i.line != "" and not i.line.isspace()]) as tf:
-        return cppGet.value(tf.fileName, var)
+    with tempfile.NamedTemporaryFile(suffix='.cpp', delete=True) as tf:
+        tf.writelines([(i.line+"\n").encode() for i in foutLines if i.line !=
+                       "" and not i.line.isspace()])
+        tf.flush()
+        return cppGet.value(tf.name, var)
 
 
 def is_macro(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> bool:
-    with TmpWriteFile("tmp.cpp", [i.line+"\n" for i in foutLines if i.line != "" and not i.line.isspace()]) as tf:
-        return cppGet.isDef(tf.fileName, var)
+    with tempfile.NamedTemporaryFile(suffix='.cpp', delete=True) as tf:
+        tf.writelines([(i.line+"\n").encode() for i in foutLines if i.line !=
+                       "" and not i.line.isspace()])
+        tf.flush()
+        return cppGet.isDef(tf.name, var)
 
 
 def create__IS_VOID__(variables: Variables):
@@ -91,34 +70,34 @@ def create__IS_VOID__(variables: Variables):
 
 def create__IS_INT__(variables: Variables):
     def f(var):
-        if is_var(var, variables):
-            try:
-                i = int(variables.variables[var])
-                return True
-            except ValueError:
-                pass
+        # if is_var(var, variables):
+        try:
+            i = int(variables.variables[var])
+            return True
+        except ValueError:
+            pass
         return False
     return f
 
 
 def create__IS_FLOAT__(variables: Variables):
     def f(var):
-        if is_var(var, variables):
-            try:
-                i = float(variables.variables[var])
-                return True
-            except ValueError:
-                pass
+        # if is_var(var, variables):
+        try:
+            i = float(variables.variables[var])
+            return True
+        except ValueError:
+            pass
         return False
     return f
 
 
 def create__IS_CSTR__(variables: Variables):
-    return lambda var: is_var(var, variables) and is_cstr(variables.variables[var])
+    return lambda var:  is_cstr(variables.variables[var])
 
 
 def create__IS_MACRO__(variables: Variables, inputFileName: str, foutLines: list[LineString]):
-    return lambda var: is_var(var, variables) or is_macro(var, inputFileName, foutLines)
+    return lambda var:  is_macro(var, inputFileName, foutLines)
 
 
 def create__IS_WORD__():
@@ -126,7 +105,7 @@ def create__IS_WORD__():
 
 
 def create__IS_LIST__(variables: Variables):
-    return lambda var: is_var(var, variables) and len(var.split()) > 1
+    return lambda var:  len(var.split()) > 1
 
 
 """

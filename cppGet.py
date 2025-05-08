@@ -12,7 +12,7 @@ CPP_GET_IFDEF = "script/cpp_get_ifdef.bash"
 def value(inputFile: str, macroName: str) -> str:
     with subprocess.Popen(['bash', CPP_GET, inputFile, macroName], stdout=subprocess.PIPE) as proc:
         stdout = proc.stdout.read().decode()
-        return stdout[1:-1]
+        return stdout[:-1]
 
 
 # true если макрос определен

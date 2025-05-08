@@ -45,8 +45,7 @@ def getArgs(args: str) -> list[str]:
             elif charaster == ")":
                 countNoClosedRoundBracket -= 1
 
-    for value in returnValue:
-        value = value.strip()
+    returnValue = [value.strip() for value in returnValue]
 
     assert countNoClosedRoundBracket == 0, "not closed round bracket " + args
     assert countNoClosedQuotes == False, "not closed quotes"

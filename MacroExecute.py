@@ -90,12 +90,6 @@ def processingLine(variables: Variables, line: str) -> str:
 
                         line = l1+l2+l3
 
-    # indexResh = index(line, "##")
-    # while indexResh != -1:
-    #     indexResh = index(line, "##")
-    #     line = line[:indexResh].rstrip(
-    #     ) + line[indexResh+len("##"):].lstrip()
-
     return line
 
 
@@ -129,7 +123,6 @@ def processingLineCppGet(variables: Variables, expr: str, inputFileName: str, fo
 
     print(f"'{expr}' = \033[32m{value}\033[0m")
 
-    # raise Exception("not work func")
     return expr
 
 
@@ -158,7 +151,8 @@ class MacroFuncStack:
         self.foutLines = foutLines
         self.inputFileName = inputFileName
 
-        startMacroFunc(func.txt, macroFunctions, None, inputFileName)
+        startMacroFunc(func.txt, macroFunctions,
+                       foutLines, inputFileName)
 
         countNoClosedMacroFuncs = 0
 

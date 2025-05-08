@@ -89,7 +89,7 @@ function2
 */
 
 
-
+/*
 ##macrofunc create_functions(row_of_names)
     ##foreach(VAR, row_of_names)
 void function ## VAR (void) { std::cout << VAR << std::endl; }
@@ -119,10 +119,10 @@ function2
 };
 */
 
-
+/*
 ##macrofunc is_macro(list)
     ##foreach(VAR, list)
-        ##if ! __IS_MACRO__(row_of_names, VAR)
+        ##if ! __IS_MACRO__(VAR)
 #error "is not macro: " #VAR
         ##endif
     ##endforeach
