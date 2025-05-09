@@ -10,13 +10,15 @@ CPP_GET_IFDEF = "script/cpp_get_ifdef.bash"
 
 # получить значение макроса
 def value(inputFile: str, macroName: str) -> str:
-    with subprocess.Popen(['bash', CPP_GET, inputFile, macroName], stdout=subprocess.PIPE) as proc:
+    with subprocess.Popen(['bash', CPP_GET, inputFile, macroName], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        print(f"\033[31m{proc.stderr.read().decode()}\033[0m")
         stdout = proc.stdout.read().decode()
         return stdout[:-1]
 
 
 # true если макрос определен
 def isDef(inputFile: str, macroName: str) -> bool:
-    with subprocess.Popen(['bash', CPP_GET_IFDEF, inputFile, macroName], stdout=subprocess.PIPE) as proc:
+    with subprocess.Popen(['bash', CPP_GET_IFDEF, inputFile, macroName], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        print(f"\033[31m{proc.stderr.read().decode()}\033[0m")
         stdout = proc.stdout.read().decode()
         return stdout == "1\n"

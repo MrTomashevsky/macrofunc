@@ -6,6 +6,7 @@ argv = ["--def_cstr_literals", "literals.txt",
         ]  # sys.argv[1:]
 main(argv)
 
+
 # from MacroWorkWithVariables import *
 
 # print(create__IS_WORD__()(" hels"))

@@ -6,6 +6,7 @@ from MacroFunc import LineString
 import MacroFunction
 import MacroExecute
 import cppLanguageInfo
+import GlobalOneTmpFile
 
 stdout = None
 
@@ -62,6 +63,8 @@ def process(args: list):
     else:
         with open(stdout, "w") as fout:
             fout.writelines(outputLines)
+
+    GlobalOneTmpFile.clear()
 
 
 def help(args: list):
