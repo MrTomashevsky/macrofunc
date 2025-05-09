@@ -145,16 +145,14 @@ function2
         ##error txt
     ##endmacrofunc
 
-    ##integrate __tmp("hello", "sdsd")
-    ##integrate __tmp("heh),ds", "lsdlsld")
-    ##integrate __tmp("!", "lsldsld")
+    ##integrate __tmp(hello, ff)
 
 ##endmacrofunc
 
 ##integrate hello_world()
 
-##macrofunc variables(v, t, h)
-    ##error v t h
+##macrofunc variables(v)
+    ##error v
 ##endmacrofunc
 
-##integrate variables(8, 9, 7)
+##integrate variables(df)

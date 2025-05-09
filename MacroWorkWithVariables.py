@@ -2,7 +2,7 @@ from MyAlg import *
 from cppLanguageInfo import is_cstr
 from MacroFunc import LineString
 import cppGet
-import GlobalOneTmpFile
+import TmpFile
 
 
 class MacroVariablesException(Exception):
@@ -49,31 +49,13 @@ def is_var(var: MacroVariable, variables: Variables) -> bool:
 
 
 def macro_value(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> str:
-    # with tempfile.NamedTemporaryFile(suffix='.cpp', delete=True) as tf:
-    #     tf.writelines([(i.line+"\n").encode() for i in foutLines if i.line !=
-    #                    "" and not i.line.isspace()])
-    #     tf.flush()
-    #     return cppGet.value(tf.name, var)
-
-    GlobalOneTmpFile.clear()
-    GlobalOneTmpFile.init([(i.line+"\n").encode() for i in foutLines if i.line !=
-                           "" and not i.line.isspace()])
-
-    return cppGet.value(GlobalOneTmpFile.name, var)
+    return cppGet.value([i.line+"\n" for i in foutLines if i.line !=
+                         "" and not i.line.isspace()], var)
 
 
 def is_macro(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> bool:
-    #     with tempfile.NamedTemporaryFile(suffix='.cpp', delete=True) as tf:
-    #         tf.writelines([(i.line+"\n").encode() for i in foutLines if i.line !=
-    #                        "" and not i.line.isspace()])
-    #         tf.flush()
-    #         return cppGet.isDef(tf.name, var)
-
-    GlobalOneTmpFile.clear()
-    GlobalOneTmpFile.init([(i.line+"\n").encode() for i in foutLines if i.line !=
-                           "" and not i.line.isspace()])
-
-    return cppGet.isDef(GlobalOneTmpFile.name, var)
+    return cppGet.isDef([i.line+"\n" for i in foutLines if i.line !=
+                         "" and not i.line.isspace()], var)
 
 
 def create__IS_VOID__(variables: Variables):
