@@ -5,8 +5,8 @@ from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
 from cppGet import *
-from MacroWorkWithVariables import Variables
-from MacroWorkWithVariables import macroSpesFunctions, is_macro, macro_value
+from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macro_value
+from MacroExecuteSettings import ConditionsInfo
 
 
 def toRealType(s: str):
@@ -24,9 +24,6 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
     text: TextMacroFunction = []
 
     for line in lines:
-
-        if line.numb == 134:
-            pass
 
         if MacroFunc.isBeginMacroFunc(line):
             countNoClosedMacroFuncs += 1
@@ -111,16 +108,18 @@ def processingLineCppGet(variables: Variables, expr: str, foutLines: list[LineSt
         vars = {j: toRealType(i[j]) for i in variables.variables for j in i}
         value = eval(expr, funcs, vars)
     except NameError as ne:
-        value = f"\033[31m{ne}\033[0m"
+        # value = f"\033[31m{ne}\033[0m"
+        pass
 
     # print(f"'{expr}' = \033[32m{value}\033[0m")
 
-    return expr
+    return value
 
 
 # класс исполнения макрофункции
 class MacroFuncStack:
     variables: Variables
+    ifelser: ConditionsInfo
 
     line: str
     foutLines: list[LineString]
@@ -129,6 +128,7 @@ class MacroFuncStack:
     #     print("\033[37;2m", name, str(self.line), "\033[0m")
 
     def __init__(self):
+        ifelser = ConditionsInfo()
         pass
 
     def initWithListArgs(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction):
@@ -205,11 +205,14 @@ class MacroFuncStack:
         raise Exception("")
 
     def ifCommand(self):
+        self.ifelser.pushIf()
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
+
         pass
 
     def elifCommand(self):
+        self.ifelser.pushElif()
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
         pass
