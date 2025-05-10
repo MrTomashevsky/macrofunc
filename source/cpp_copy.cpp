@@ -16,7 +16,7 @@
 ##integrate tmp()
 /*
 #define MACRO1 0
-#define MACRO2 3
+#define MACRO2 3  
 #define MACRO3 6
 #define MACRO4 "6"
 #define MACRO5 L"6"

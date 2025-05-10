@@ -48,12 +48,12 @@ def is_var(var: MacroVariable, variables: Variables) -> bool:
     return var in variables.variables
 
 
-def macro_value(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> str:
+def macro_value(var: MacroVariable, foutLines: list[LineString]) -> str:
     return cppGet.value([i.line+"\n" for i in foutLines if i.line !=
                          "" and not i.line.isspace()], var)
 
 
-def is_macro(var: MacroVariable, inputFileName: str, foutLines: list[LineString]) -> bool:
+def is_macro(var: MacroVariable, foutLines: list[LineString]) -> bool:
     return cppGet.isDef([i.line+"\n" for i in foutLines if i.line !=
                          "" and not i.line.isspace()], var)
 
@@ -90,16 +90,16 @@ def create__IS_CSTR__(variables: Variables):
     return lambda var:  is_cstr(variables.variables[var])
 
 
-def create__IS_MACRO__(variables: Variables, inputFileName: str, foutLines: list[LineString]):
-    return lambda var:  is_macro(var, inputFileName, foutLines)
+def create__IS_MACRO__(foutLines: list[LineString]):
+    return lambda var: is_macro(var, foutLines)
 
 
 def create__IS_WORD__():
     return lambda var: len(var.split()) == 1
 
 
-def create__IS_LIST__(variables: Variables):
-    return lambda var:  len(var.split()) > 1
+def create__IS_LIST__():
+    return lambda var: len(var.split()) > 1
 
 
 """
@@ -116,12 +116,12 @@ def create__IS_LIST__(variables: Variables):
 
 
 def error_if_is_not_list(var, variables):
-    if create__IS_LIST__(variables)(var):
+    if create__IS_LIST__()(var):
         return True
     raise MacroVariablesException(f"is not list: '{var}'")
 
 
-def create__SIZE_LIST__(variables: Variables):
+def create__SIZE_LIST__():
     def f(lst):
         error_if_is_not_list(lst)
         return len(lst.split())
@@ -160,19 +160,18 @@ def create__INDEX__(variables: Variables):
 """
 
 
-def macroSpesFunctions(variables: Variables, inputFileName: str, foutLines: list[LineString]) -> dict[str, ]:
+def macroSpesFunctions(variables: Variables, foutLines: list[LineString]) -> dict[str, ]:
     returnValue: dict[str, ] = {}
 
     returnValue["__IS_VOID__"] = create__IS_VOID__(variables)
     returnValue["__IS_INT__"] = create__IS_INT__(variables)
     returnValue["__IS_FLOAT__"] = create__IS_FLOAT__(variables)
     returnValue["__IS_CSTR__"] = create__IS_CSTR__(variables)
-    returnValue["__IS_MACRO__"] = create__IS_MACRO__(
-        variables, inputFileName, foutLines)
+    returnValue["__IS_MACRO__"] = create__IS_MACRO__(foutLines)
     returnValue["__IS_WORD__"] = create__IS_WORD__()
-    returnValue["__IS_LIST__"] = create__IS_LIST__(variables)
+    returnValue["__IS_LIST__"] = create__IS_LIST__()
 
-    returnValue["__SIZE_LIST__"] = create__SIZE_LIST__(variables)
+    returnValue["__SIZE_LIST__"] = create__SIZE_LIST__()
     returnValue["__IS_END_LIST__"] = create__IS_END_LIST__(variables)
     returnValue["__IS_BEGIN_LIST__"] = create__IS_BEGIN_LIST__(variables)
     returnValue["__IS_ITEM_LIST__"] = create__IS_ITEM_LIST__(variables)

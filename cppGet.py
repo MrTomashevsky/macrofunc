@@ -15,7 +15,9 @@ def isDef(lines: list[str], macroName: str) -> bool:
     tmpInputFile1.writelines(text)
     cppCommand = subprocess.run(
         f"cpp -o {tmpInputFile2.name} {tmpInputFile1.name}", shell=True, capture_output=True, text=True)
-    assert cppCommand.stderr == "", f"stderr of cpp not void: {cppCommand.stderr}"
+
+    # if cppCommand.stderr != "":
+    #     print(f"stderr of cpp not void: {cppCommand.stderr}")
 
     tailCommand = subprocess.run(
         f"tail -n 1 {tmpInputFile2.name}", shell=True, capture_output=True, text=True)
@@ -25,21 +27,23 @@ def isDef(lines: list[str], macroName: str) -> bool:
 
 # получить значение макроса
 def value(lines: list[str], macroName: str) -> str:
-    if isDef(lines, macroName):
+    assert isDef(lines, macroName), f"macro {macroName} not defined"
 
-        tmpInputFile1 = TmpFileCpp()
-        tmpInputFile2 = TmpFileCpp()
-        tmpInputFile1.writelines(lines)
+    tmpInputFile1 = TmpFileCpp()
+    tmpInputFile2 = TmpFileCpp()
+    tmpInputFile1.writelines(lines)
 
-        text = [f"\n\n{macroName}\n"]
-        tmpInputFile1.writelines(text)
+    text = [f"\n\n{macroName}\n"]
+    tmpInputFile1.writelines(text)
 
-        cppCommand = subprocess.run(
-            f"cpp -o {tmpInputFile2.name} {tmpInputFile1.name}", shell=True, capture_output=True, text=True)
-        assert cppCommand.stderr == "", f"stderr of cpp not void: {cppCommand.stderr}"
+    cppCommand = subprocess.run(
+        f"cpp -o {tmpInputFile2.name} {tmpInputFile1.name}", shell=True, capture_output=True, text=True)
+    # assert cppCommand.stderr == "", f"stderr of cpp not void: {cppCommand.stderr}"
 
-        tailCommand = subprocess.run(
-            f"tail -n 1 {tmpInputFile2.name}", shell=True, capture_output=True, text=True)
+    # if cppCommand.stderr != "":
+    #     print(f"stderr of cpp not void: {cppCommand.stderr}")
 
-        return tailCommand.stdout[:-1]
-    return None
+    tailCommand = subprocess.run(
+        f"tail -n 1 {tmpInputFile2.name}", shell=True, capture_output=True, text=True)
+
+    return tailCommand.stdout[:-1]

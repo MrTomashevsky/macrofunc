@@ -10,6 +10,36 @@ import cppLanguageInfo
 stdout = None
 
 
+# удаление с++ комменатриев из текста
+def deleteComments(text: MacroFunc.TextMacroFunction):
+    tmptext = []
+    isMultiLineComment = False
+    ind: int
+    for i in text:
+        line = i.line
+
+        if isMultiLineComment:
+            ind = cppLanguageInfo.indexEndMultiLineComment(i.line)
+            if ind != -1:
+                isMultiLineComment = False
+                line = line[ind+len(MacroFunc.BEGIN_COMMAND):]
+            else:
+                line = ""
+        else:
+            ind = cppLanguageInfo.indexBeginMultiLineComment(i.line)
+            if ind != -1:
+                isMultiLineComment = True
+                line = line[:ind]
+
+        ind = cppLanguageInfo.indexSingleLineComment(i.line)
+        if ind != -1:
+            line = line[:ind]
+
+        tmptext.append(LineString(i.numb, line))
+
+    return tmptext
+
+
 def process(args: list):
     macroFunctions: MacroFunction.ListMacroFunction = []
     foutLines: list[LineString] = []
@@ -18,41 +48,12 @@ def process(args: list):
         lines: MacroFunc.TextMacroFunction = [LineString(0, "")]+[LineString(
             i, obj.rstrip()) for i, obj in enumerate(fin.readlines())]
 
-        # удаление с++ комменатриев из макрофункции
-        def deleteComments(text):
-            tmptext = []
-            isMultiLineComment = False
-            ind: int
-            for i in text:
-                line = i.line
-
-                if isMultiLineComment:
-                    ind = cppLanguageInfo.indexEndMultiLineComment(i.line)
-                    if ind != -1:
-                        isMultiLineComment = False
-                        line = line[ind+len(MacroFunc.BEGIN_COMMAND):]
-                    else:
-                        line = ""
-                else:
-                    ind = cppLanguageInfo.indexBeginMultiLineComment(i.line)
-                    if ind != -1:
-                        isMultiLineComment = True
-                        line = line[:ind]
-
-                ind = cppLanguageInfo.indexSingleLineComment(i.line)
-                if ind != -1:
-                    line = line[:ind]
-
-                tmptext.append(LineString(i.numb, line))
-
-            return tmptext
-
         lines = deleteComments(lines)
 
         # for line in lines:
         #     print(line.numb, " ", line.line)
         # exit()
-        MacroExecute.startMacroFunc(lines, macroFunctions, foutLines, args[0])
+        MacroExecute.startMacroFunc(lines, macroFunctions, foutLines)
 
     outputLines = [i.line+"\n" for i in foutLines if not i.line.isspace()
                    and i.line != ""]
