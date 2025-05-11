@@ -10,6 +10,9 @@ class ConditionsInfo:
     def __init__(self, was: bool, value: bool):
         self.was, self.value = was, value
 
+    def __str__(self):
+        return f"{self.was}, {self.value}"
+
 
 class ConditionsSearch:
     viewedConditions: list[dict[str, ]]
@@ -22,13 +25,13 @@ class ConditionsSearch:
         })
 
     def printer(self):
-        for i in self.viewedConditions:
+        for ind, i in enumerate(self.viewedConditions):
+            print(f"[{ind}]")
             for j in i:
                 print(f"{j} = {i[j]}")
-            print("")
-        print("\n\n")
 
     def __init__(self):
+        self.viewedConditions = []
         self._push_null()
 
     def ifAllConditionsExit(self):
@@ -65,7 +68,22 @@ class ConditionsSearch:
         self.viewedConditions = self.viewedConditions[:-1]
         self.printer()
 
+    def __del__(self):
+        assert len(self.viewedConditions) == 1 and self.viewedConditions[0][
+            "if"].was == self.viewedConditions[0]["endif"].was, "not closed visible area 'if'"
 
-cs = ConditionsSearch()
 
-cs.pushIf()
+def printer(value):
+    print(f"<{value}>\n\n")
+
+
+def fun1():
+    cs = ConditionsSearch()
+
+    printer(cs.pushIf(False))
+    printer(cs.pushIf(False))
+
+    # input("pause")
+
+
+fun1()
