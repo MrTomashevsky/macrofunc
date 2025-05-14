@@ -27,8 +27,6 @@ def isDef(lines: list[str], macroName: str) -> bool:
 
 # получить значение макроса
 def value(lines: list[str], macroName: str) -> str:
-    assert isDef(lines, macroName), f"macro {macroName} not defined"
-
     tmpInputFile1 = TmpFileCpp()
     tmpInputFile2 = TmpFileCpp()
     tmpInputFile1.writelines(lines)

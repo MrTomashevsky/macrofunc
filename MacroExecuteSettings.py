@@ -1,89 +1,59 @@
-import enum
+# модуль обработчиков областей видимости, условий и циклов
 
-# ConditionEnum = enum.Enum(names=('IF ELIF ELSE'))
-
-
-class ConditionsInfo:
-    was: bool
-    value: bool
-
-    def __init__(self, was: bool, value: bool):
-        self.was, self.value = was, value
-
-    def __str__(self):
-        return f"{self.was}, {self.value}"
+# класс области видимости условий
+class IfElseInfo:
+    pIf = False
+    pElif = False
+    pElse = False
+    correctSolutionWasFound = False
+    canExecute = False
 
 
+# класс обработчик областей видимости
 class ConditionsSearch:
-    viewedConditions: list[dict[str, ]]
+    viewedConditions: list[IfElseInfo] = [IfElseInfo()]
 
-    def _push_null(self):
-        self.viewedConditions.append({
-            "if": ConditionsInfo(False, False),
-            "elif": ConditionsInfo(False, False),
-            "else": False
-        })
+    def pushIf(self, value):
+        if self.viewedConditions[-1].pIf:
+            self.viewedConditions.append(IfElseInfo())
+        self.viewedConditions[-1].pIf = True
 
-    def printer(self):
-        for ind, i in enumerate(self.viewedConditions):
-            print(f"[{ind}]")
-            for j in i:
-                print(f"{j} = {i[j]}")
+        if value:
+            self.viewedConditions[-1].correctSolutionWasFound = True
+            self.viewedConditions[-1].canExecute = True
 
-    def __init__(self):
-        self.viewedConditions = []
-        self._push_null()
+    def pushElif(self, value):
+        assert self.viewedConditions[-1].pIf, "'elif' must be after 'if', but 'if' not find"
+        assert not self.viewedConditions[-1].pElse, "'elif' after 'else'"
 
-    def ifAllConditionsExit(self):
-        for i in self.viewedConditions[-1]:
-            if not self.viewedConditions[-1][i].was:
-                return
-        self.viewedConditions = self.viewedConditions[:-1]
-        self.printer()
+        self.viewedConditions[-1].pElif = True
 
-    def pushIf(self, value) -> bool:
-        if self.viewedConditions[-1]["if"].was:
-            self._push_null()
-        self.viewedConditions[-1]["if"].was = True
-        self.viewedConditions[-1]["if"].value = value
-        self.printer()
-        return value
-
-    def pushElif(self, value) -> bool:
-        assert self.viewedConditions[-1]["if"].was, "'elif' must be after 'if', but 'if' not find"
-        assert not self.viewedConditions[-1]["else"], "'elif' after 'else'"
-        self.viewedConditions[-1]["elif"].was = True
-        self.viewedConditions[-1]["if"].value = value
-        self.printer()
-        return value
+        if value and not self.viewedConditions[-1].correctSolutionWasFound:
+            self.viewedConditions[-1].correctSolutionWasFound = True
+            self.viewedConditions[-1].canExecute = True
+        else:
+            self.viewedConditions[-1].canExecute = False
 
     def pushElse(self) -> bool:
-        assert self.viewedConditions[-1]["if"].was, "'else' must be after 'if', but 'if' not find"
-        assert not self.viewedConditions[-1]["else"], "too many teams 'else'"
-        self.viewedConditions[-1]["else"] = True
-        self.printer()
+        assert self.viewedConditions[-1].pIf, "'else' must be after 'if', but 'if' not find"
+        assert not self.viewedConditions[-1].pElse, "too many teams 'else'"
+
+        self.viewedConditions[-1].pElse = True
+
+        if not self.viewedConditions[-1].correctSolutionWasFound:
+            self.viewedConditions[-1].correctSolutionWasFound = True
+            self.viewedConditions[-1].canExecute = True
+        else:
+            self.viewedConditions[-1].canExecute = False
 
     def pushEndif(self):
-        assert self.viewedConditions[-1]["if"], "'endif' must be after 'if', but 'if' not find"
+        assert self.viewedConditions[-1].pIf, "'endif' must be after 'if', but 'if' not find"
         self.viewedConditions = self.viewedConditions[:-1]
-        self.printer()
+
+    # находится ли текущая команда в области видимости верного условия?
+    def canExecute(self) -> bool:
+        return self.viewedConditions[-1].canExecute
 
     def __del__(self):
-        assert len(self.viewedConditions) == 1 and self.viewedConditions[0][
-            "if"].was == self.viewedConditions[0]["endif"].was, "not closed visible area 'if'"
-
-
-def printer(value):
-    print(f"<{value}>\n\n")
-
-
-def fun1():
-    cs = ConditionsSearch()
-
-    printer(cs.pushIf(False))
-    printer(cs.pushIf(False))
-
-    # input("pause")
-
-
-fun1()
+        assert len(
+            self.viewedConditions) == 0, f"not closed visible area 'if': {len(self.viewedConditions)}"

@@ -26,15 +26,14 @@
 #define MACRO4 "6"
 #define MACRO5 L"6"
 */
-/*
 ##macrofunc creater(macro_name)
     ##if macro_name == IO_MACRO
 #define MACRO 0
-    ##elif macro_name == RAND_MACRO
+    ##elif macro_name == RAND_MACRO2
 #define MACRO 1
     ##elif macro_name == 100
 #define MACRO 2
-    ##else
+    // ##else
 #define MACRO 3
     ##endif
 ##endmacrofunc
@@ -43,7 +42,7 @@
 ##integrate creater(RAND_MACRO)
 // #define MACRO 1
 
-
+/*
 ##macrofunc int_is_4_bytes(sizeof)
     ##error sizeof == 4
 ##endmacrofunc
@@ -136,7 +135,7 @@ function2
 
 
 
-
+/*
 ##macrofunc hello_world()
 
 
@@ -156,3 +155,4 @@ function2
 ##endmacrofunc
 
 ##integrate variables(df)
+*/

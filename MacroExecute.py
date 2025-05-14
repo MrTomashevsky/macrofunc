@@ -6,7 +6,7 @@ from MacroFunction import *
 from MyAlg import *
 from cppGet import *
 from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macro_value
-from MacroExecuteSettings import ConditionsInfo
+from MacroExecuteSettings import ConditionsSearch
 
 
 def toRealType(s: str):
@@ -103,32 +103,44 @@ def processingLineCppGet(variables: Variables, expr: str, foutLines: list[LineSt
             expr = tmpExpr + replacement[i] + expr[len(tmpExpr)+len(i):]
 
     value = None
-    try:
-        funcs = macroSpesFunctions(variables, foutLines)
-        vars = {j: toRealType(i[j]) for i in variables.variables for j in i}
-        value = eval(expr, funcs, vars)
-    except NameError as ne:
-        # value = f"\033[31m{ne}\033[0m"
-        pass
+    funcs = macroSpesFunctions(variables, foutLines)
+    vars = {j: toRealType(i[j])
+            for i in variables.variables for j in i}
+    while True:
+        try:
+            value = eval(expr, funcs, vars)
+            break
+        except NameError as ne:
+            if not is_macro(ne.name, foutLines):
+                return False
+            vars[ne.name] = toRealType(macro_value(ne.name, foutLines))
+
+            # print(f"\033[31m{ne.name}\033[0m")
 
     # print(f"'{expr}' = \033[32m{value}\033[0m")
 
     return value
 
 
+def ifelser_decorator(method, *args, **kwargs):
+    def wrapper(self):
+        if self.ifelser.canExecute():
+            return method(self, *args, **kwargs)
+    return wrapper
+
+
 # класс исполнения макрофункции
 class MacroFuncStack:
     variables: Variables
-    ifelser: ConditionsInfo
-
+    ifelser: ConditionsSearch
     line: str
     foutLines: list[LineString]
 
-    # def printNameOfCommand(self, name):
-    #     print("\033[37;2m", name, str(self.line), "\033[0m")
+    def printNameOfCommand(self, name):
+        print("\033[37;2m", name, str(self.line), "\033[0m")
 
     def __init__(self):
-        ifelser = ConditionsInfo()
+        self.ifelser = ConditionsSearch()
         pass
 
     def initWithListArgs(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction):
@@ -138,7 +150,6 @@ class MacroFuncStack:
 
     def initWithVariables(self, func: MacroFunction, variables: Variables, foutLines: list[LineString], macroFunctions: ListMacroFunction):
         self.variables = variables
-
         self.foutLines = foutLines
 
         startMacroFunc(func.txt, macroFunctions,
@@ -182,12 +193,11 @@ class MacroFuncStack:
                 self.line = line.line[line.line.index(
                     MacroFunc.BEGIN_COMMAND) + len(MacroFunc.BEGIN_COMMAND)+len(name):]
 
-                # self.printNameOfCommand(name)
+                self.printNameOfCommand(name)
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
-            if ind == MacroFunc.IS_NOT_DIRECTIVE:
-
+            if ind == MacroFunc.IS_NOT_DIRECTIVE and self.ifelser.canExecute():
                 foutLines.append(LineString(
                     line.numb, processingLine(self.variables, line.line)))
 
@@ -195,44 +205,49 @@ class MacroFuncStack:
 
     # далее представлены функции обработки всех возможных команд MacroFunc
 
+    @ifelser_decorator
     def macrofuncCommand(self):
         raise Exception("")
 
+    @ifelser_decorator
     def endmacrofuncCommand(self):
         raise Exception("")
 
+    @ifelser_decorator
     def integrateCommand(self):
         raise Exception("")
 
     def ifCommand(self):
-        self.ifelser.pushIf()
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
 
-        pass
+        self.ifelser.pushIf(exprValue)
 
     def elifCommand(self):
-        self.ifelser.pushElif()
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
-        pass
+
+        self.ifelser.pushElif(exprValue)
 
     def elseCommand(self):
-        pass
+        self.ifelser.pushElse()
 
     def endifCommand(self):
-        pass
+        self.ifelser.pushEndif()
 
+    @ifelser_decorator
     def errorCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
                 LineString(-1, f"#if {self.line.strip()}\n   #error \"{self.line.strip()}\"\n#endif"))
 
+    @ifelser_decorator
     def warningCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
                 LineString(-1, f"#if {self.line.strip()}\n   #warning \"{self.line.strip()}\"\n#endif"))
 
+    @ifelser_decorator
     def varCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in for macrocommand"
@@ -240,6 +255,7 @@ class MacroFuncStack:
         self.variables.lastAreaOfVisibility(
         )[args[0]] = processingLine(self.variables, args[1])
 
+    @ifelser_decorator
     def forCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 4, "unknown args in for macrocommand"
@@ -250,10 +266,12 @@ class MacroFuncStack:
 
         # print(args)
 
+    @ifelser_decorator
     def endforCommand(self):
         self.variables.deleteAreaOfVisibility()
         pass
 
+    @ifelser_decorator
     def foreachCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in foreach macrocommand"
@@ -265,6 +283,7 @@ class MacroFuncStack:
         # print(args)
         pass
 
+    @ifelser_decorator
     def endforeachCommand(self):
         self.variables.deleteAreaOfVisibility()
         pass
