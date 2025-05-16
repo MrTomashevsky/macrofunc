@@ -6,7 +6,7 @@ from MacroFunction import *
 from MyAlg import *
 from cppGet import *
 from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macro_value
-from MacroExecuteSettings import ConditionsSearch
+from MacroExecuteSettings import ConditionsSaver, CicleSaver
 
 
 def toRealType(s: str):
@@ -132,15 +132,18 @@ def ifelser_decorator(method, *args, **kwargs):
 # класс исполнения макрофункции
 class MacroFuncStack:
     variables: Variables
-    ifelser: ConditionsSearch
+    ifelser: ConditionsSaver
     line: str
     foutLines: list[LineString]
+    thisIndex: int
+    cicleSaver: CicleSaver
 
     def printNameOfCommand(self, name):
         print("\033[37;2m", name, str(self.line), "\033[0m")
 
     def __init__(self):
-        self.ifelser = ConditionsSearch()
+        self.ifelser = ConditionsSaver()
+        self.thisIndex = 0
         pass
 
     def initWithListArgs(self, func: MacroFunction, listArgs: list[str], foutLines: list[LineString], macroFunctions: ListMacroFunction):
@@ -159,20 +162,20 @@ class MacroFuncStack:
 
         text: TextMacroFunction = []
 
-        for line in func.txt:
+        for i in range(len(func.txt)):
             isSpecDirective = False
-            ind = MacroFunc.indexDirective(line)
+            ind = MacroFunc.indexDirective(func.txt[i])
 
             if MacroFunc.isIndexBeginMacroFunc(ind):
                 countNoClosedMacroFuncs += 1
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs == 0 and MacroFunc.isIndexIntegrate(ind):
-                integrate(macroFunctions, line, foutLines)
+                integrate(macroFunctions, func.txt[i], foutLines)
                 isSpecDirective = True
 
             if countNoClosedMacroFuncs > 0:
-                text.append(line)
+                text.append(func.txt[i])
 
             if MacroFunc.isIndexEndMacroFunc(ind):
                 macroFunctions.append(MacroFunction(text))
@@ -181,7 +184,7 @@ class MacroFuncStack:
                 countNoClosedMacroFuncs -= 1
                 isSpecDirective = True
 
-            assert ind != MacroFunc.IS_UNKNOWN_DIRECTIVE, f"unknown directive in line {line.numb}: \"{line.line}\""
+            assert ind != MacroFunc.IS_UNKNOWN_DIRECTIVE, f"unknown directive in line {func.txt[i].numb}: \"{line.line}\""
 
             if ind != MacroFunc.IS_NOT_DIRECTIVE and not isSpecDirective and ind[0] != -1:
                 name: str
@@ -190,16 +193,19 @@ class MacroFuncStack:
                 else:
                     name = MacroFunc.listMacroCommand[ind[0]].name
 
-                self.line = line.line[line.line.index(
+                self.thisIndex = i
+                self.line = func.txt[i].line[func.txt[i].line.index(
                     MacroFunc.BEGIN_COMMAND) + len(MacroFunc.BEGIN_COMMAND)+len(name):]
 
                 self.printNameOfCommand(name)
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
+                i = self.thisIndex
+
             if ind == MacroFunc.IS_NOT_DIRECTIVE and self.ifelser.canExecute():
                 foutLines.append(LineString(
-                    line.numb, processingLine(self.variables, line.line)))
+                    func.txt[i].numb, processingLine(self.variables, func.txt[i].line)))
 
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
@@ -255,19 +261,27 @@ class MacroFuncStack:
         self.variables.lastAreaOfVisibility(
         )[args[0]] = processingLine(self.variables, args[1])
 
+    def processingFor(self, args: list[str]) -> str:
+        return args[0]
+
     @ifelser_decorator
     def forCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 4, "unknown args in for macrocommand"
 
-        self.variables.newAreaOfVisibility()
-        self.variables.lastAreaOfVisibility(
-        )[args[0]] = processingLine(self.variables, args[1])
+        if self.cicleSaver.findFor(self.thisIndex):
+            self.variables.deleteAreaOfVisibility()
+        else:
+            self.cicleSaver.declareFor(self.thisIndex)
+            self.variables.newAreaOfVisibility()
+            self.variables.lastAreaOfVisibility(
+            )[args[0]] = processingLine(self.variables, self.processingFor(args[1:]))
 
         # print(args)
 
     @ifelser_decorator
     def endforCommand(self):
+        self.cicleSaver.updateFor(self.thisIndex)
         self.variables.deleteAreaOfVisibility()
         pass
 

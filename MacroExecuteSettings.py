@@ -10,7 +10,7 @@ class IfElseInfo:
 
 
 # класс обработчик областей видимости
-class ConditionsSearch:
+class ConditionsSaver:
     viewedConditions: list[IfElseInfo] = [IfElseInfo()]
 
     def pushIf(self, value):
@@ -57,3 +57,32 @@ class ConditionsSearch:
     def __del__(self):
         assert len(
             self.viewedConditions) == 0, f"not closed visible area 'if': {len(self.viewedConditions)}"
+
+
+class ForInfo:
+    indexFor: int
+    indexEnd: int
+
+    def __init__(self, indexFor: int, indexEnd: int):
+        self.indexFor, self.indexEnd = indexFor, indexEnd
+
+
+class CicleSaver:
+    begin: list[int] = []
+    end: list[int] = []
+
+    def findEndFor(self, index) -> bool:
+        return index in self.end
+
+    def findFor(self, index) -> bool:
+        return index in self.begin
+
+    def declareFor(self, index):
+        self.begin.append(index)
+
+    def updateFor(self, index):
+        self.end.append(index)
+
+    def __del__(self):
+        assert len(
+            self.begin) == 0 and len(self.end) == 0, f"not closed visible area 'cicle': {len(self.viewedConditions)}"
