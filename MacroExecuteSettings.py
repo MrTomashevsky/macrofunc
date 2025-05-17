@@ -1,4 +1,6 @@
 # модуль обработчиков областей видимости, условий и циклов
+from MyAlg import *
+
 
 # класс области видимости условий
 class IfElseInfo:
@@ -11,10 +13,10 @@ class IfElseInfo:
 
 # класс обработчик областей видимости
 class ConditionsSaver:
-    viewedConditions: list[IfElseInfo] = [IfElseInfo()]
+    viewedConditions: list[IfElseInfo] = []
 
     def pushIf(self, value):
-        if self.viewedConditions[-1].pIf:
+        if len(self.viewedConditions) == 0 or self.viewedConditions[-1].pIf:
             self.viewedConditions.append(IfElseInfo())
         self.viewedConditions[-1].pIf = True
 
@@ -52,6 +54,8 @@ class ConditionsSaver:
 
     # находится ли текущая команда в области видимости верного условия?
     def canExecute(self) -> bool:
+        if len(self.viewedConditions) == 0:
+            return True
         return self.viewedConditions[-1].canExecute
 
     def __del__(self):
@@ -61,28 +65,57 @@ class ConditionsSaver:
 
 class ForInfo:
     indexFor: int
-    indexEnd: int
+    indexEndFor: int
 
-    def __init__(self, indexFor: int, indexEnd: int):
-        self.indexFor, self.indexEnd = indexFor, indexEnd
+    def __init__(self, indexFor: int, indexEndFor: int):
+        self.indexFor, self.indexEndFor = indexFor, indexEndFor
 
 
 class CicleSaver:
-    begin: list[int] = []
-    end: list[int] = []
+    viewedCircles: list[ForInfo] = []
+    _canExecute: bool = True
+    counterFor: int = 0
 
-    def findEndFor(self, index) -> bool:
-        return index in self.end
+    def findFor(self, thisIndex) -> int:
+        for i, obj in enumerate(self.viewedCircles):
+            if obj.indexFor == thisIndex:
+                return i
+        return -1
 
-    def findFor(self, index) -> bool:
-        return index in self.begin
+    def findEndFor(self, thisIndex) -> int:
+        for i, obj in enumerate(self.viewedCircles):
+            if obj.indexEndFor == thisIndex:
+                return i
+        return -1
 
-    def declareFor(self, index):
-        self.begin.append(index)
+    def declareFor(self, thisIndex) -> ForInfo:
+        if len(self.viewedCircles) == 0 or isIndex(self.viewedCircles[-1].indexFor):
+            self.viewedCircles.append(ForInfo(thisIndex, -1))
+        return self.viewedCircles[-1]
 
-    def updateFor(self, index):
-        self.end.append(index)
+    def setCanExecute(self):
+        self._canExecute = True
+
+    def resetCanExecute(self):
+        self._canExecute = False
+
+    def updateFor(self, indexEndFor: int):
+        assert len(self.viewedCircles) != 0, "unknown 'endfor'"
+        assert isIndex(
+            self.viewedCircles[-1].indexFor), "'endfor' must be after 'for', but 'for' not find"
+        assert not isIndex(
+            self.viewedCircles[-1].indexEndFor), "'endfor' must be after 'for', but 'for' not with 'endfor' not find"
+        self.viewedCircles[-1].indexEndFor = indexEndFor
+
+    def lastFor(self) -> ForInfo:
+        return self.viewedCircles[-1]
+
+    def deleteLastFor(self):
+        self.viewedCircles = self.viewedCircles[:-1]
+
+    def canExecute(self) -> bool:
+        return self._canExecute
 
     def __del__(self):
         assert len(
-            self.begin) == 0 and len(self.end) == 0, f"not closed visible area 'cicle': {len(self.viewedConditions)}"
+            self.viewedCircles) == 0, f"not closed visible area 'cicle': {len(self.viewedCircles)}"

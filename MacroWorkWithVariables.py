@@ -87,19 +87,19 @@ def create__IS_FLOAT__(variables: Variables):
 
 
 def create__IS_CSTR__(variables: Variables):
-    return lambda var:  is_cstr(variables.variables[var])
+    return lambda var:  is_cstr(variables.variables[str(var)])
 
 
 def create__IS_MACRO__(foutLines: list[LineString]):
-    return lambda var: is_macro(var, foutLines)
+    return lambda var: is_macro(str(var), foutLines)
 
 
 def create__IS_WORD__():
-    return lambda var: len(var.split()) == 1
+    return lambda var: len(str(var).split()) == 1
 
 
 def create__IS_LIST__():
-    return lambda var: len(var.split()) > 1
+    return lambda var: len(str(var).split()) > 1
 
 
 """
@@ -115,29 +115,32 @@ def create__IS_LIST__():
 """
 
 
-def error_if_is_not_list(var, variables):
-    if create__IS_LIST__()(var):
-        return True
-    raise MacroVariablesException(f"is not list: '{var}'")
+# def error_if_is_not_list(var):
+#     if create__IS_LIST__()(var):
+#         return True
+#     raise MacroVariablesException(f"is not list: '{var}'")
 
 
 def create__SIZE_LIST__():
     def f(lst):
-        error_if_is_not_list(lst)
-        return len(lst.split())
+        # error_if_is_not_list(lst)
+        return len(str(lst).split())
     return f
 
 
 def create__IS_END_LIST__(variables: Variables):
-    return lambda lst, var:  error_if_is_not_list(var, variables) and var == lst.split()[-1]
+    # error_if_is_not_list(var, variables) and
+    return lambda lst, var:  var == lst.split()[-1]
 
 
 def create__IS_BEGIN_LIST__(variables: Variables):
-    return lambda lst, var:   error_if_is_not_list(var, variables) and var == lst.split()[0]
+    # error_if_is_not_list(var, variables) and
+    return lambda lst, var:   var == lst.split()[0]
 
 
 def create__IS_ITEM_LIST__(variables: Variables):
-    return lambda lst, var:   error_if_is_not_list(var, variables) and var in lst.split()
+    # error_if_is_not_list(var, variables) and
+    return lambda lst, var:   var in lst.split()
 
 
 def create__INDEX__(variables: Variables):

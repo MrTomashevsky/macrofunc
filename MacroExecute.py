@@ -6,7 +6,7 @@ from MacroFunction import *
 from MyAlg import *
 from cppGet import *
 from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macro_value
-from MacroExecuteSettings import ConditionsSaver, CicleSaver
+from MacroExecuteSettings import ConditionsSaver, CicleSaver, isIndex, ForInfo
 
 
 def toRealType(s: str):
@@ -61,17 +61,17 @@ def processingLine(variables: Variables, line: str) -> str:
 
                         l1 = line[:indexVar]
                         # l2 = processingLineCppGet(view[var])
-                        l2 = view[var]
+                        l2 = str(view[var])
                         l3 = line[indexVar+len(var):]
 
                         while True:
                             revLine = l1[::-1].strip()
                             if index(revLine, "##") == 0:
-                                l1 = l1[:len(l1)-3]
+                                l1 = l1[:len(l1)-2]
                                 tmpLine = l1.split()
                                 l1 = l1[:len(l1)-1 -
-                                        len(tmpLine[len(tmpLine)-1])]
-                                l2 = tmpLine[len(tmpLine)-1]+l2
+                                        len(tmpLine[-1])] + " "
+                                l2 = tmpLine[-1]+l2
                             elif index(revLine, "#") == 0:
                                 l1 = l1[:len(l1)-2]
                                 l2 = "\""+l2+"\""
@@ -129,20 +129,28 @@ def ifelser_decorator(method, *args, **kwargs):
     return wrapper
 
 
+def forer_decorator(method, *args, **kwargs):
+    def wrapper(self):
+        if self.forer.canExecute():
+            return method(self, *args, **kwargs)
+    return wrapper
+
+
 # класс исполнения макрофункции
 class MacroFuncStack:
     variables: Variables
-    ifelser: ConditionsSaver
     line: str
     foutLines: list[LineString]
     thisIndex: int
-    cicleSaver: CicleSaver
+    ifelser: ConditionsSaver
+    forer: CicleSaver
 
     def printNameOfCommand(self, name):
         print("\033[37;2m", name, str(self.line), "\033[0m")
 
     def __init__(self):
         self.ifelser = ConditionsSaver()
+        self.forer = CicleSaver()
         self.thisIndex = 0
         pass
 
@@ -161,8 +169,9 @@ class MacroFuncStack:
         countNoClosedMacroFuncs = 0
 
         text: TextMacroFunction = []
+        i = 0
 
-        for i in range(len(func.txt)):
+        while i < len(func.txt):
             isSpecDirective = False
             ind = MacroFunc.indexDirective(func.txt[i])
 
@@ -207,83 +216,128 @@ class MacroFuncStack:
                 foutLines.append(LineString(
                     func.txt[i].numb, processingLine(self.variables, func.txt[i].line)))
 
+            i += 1
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
 
     # далее представлены функции обработки всех возможных команд MacroFunc
 
+    @forer_decorator
     @ifelser_decorator
     def macrofuncCommand(self):
         raise Exception("")
 
+    @forer_decorator
     @ifelser_decorator
     def endmacrofuncCommand(self):
         raise Exception("")
 
+    @forer_decorator
     @ifelser_decorator
     def integrateCommand(self):
         raise Exception("")
 
+    @forer_decorator
     def ifCommand(self):
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
 
         self.ifelser.pushIf(exprValue)
 
+    @forer_decorator
     def elifCommand(self):
         exprValue = processingLineCppGet(
             self.variables, self.line, self.foutLines)
 
         self.ifelser.pushElif(exprValue)
 
+    @forer_decorator
     def elseCommand(self):
         self.ifelser.pushElse()
 
+    @forer_decorator
     def endifCommand(self):
         self.ifelser.pushEndif()
 
+    @forer_decorator
     @ifelser_decorator
     def errorCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
                 LineString(-1, f"#if {self.line.strip()}\n   #error \"{self.line.strip()}\"\n#endif"))
 
+    @forer_decorator
     @ifelser_decorator
     def warningCommand(self):
         if self.foutLines != None:
             self.foutLines.append(
                 LineString(-1, f"#if {self.line.strip()}\n   #warning \"{self.line.strip()}\"\n#endif"))
 
+    @forer_decorator
     @ifelser_decorator
-    def varCommand(self):
+    def varexprCommand(self):
+        args = getStripArgs(self.line)
+        assert len(args) == 2, "unknown args in for macrocommand"
+
+        self.variables.lastAreaOfVisibility(
+        )[args[0]] = processingLineCppGet(self.variables, args[1], self.foutLines)
+
+    @forer_decorator
+    @ifelser_decorator
+    def varlineCommand(self):
         args = getStripArgs(self.line)
         assert len(args) == 2, "unknown args in for macrocommand"
 
         self.variables.lastAreaOfVisibility(
         )[args[0]] = processingLine(self.variables, args[1])
 
-    def processingFor(self, args: list[str]) -> str:
-        return args[0]
-
     @ifelser_decorator
     def forCommand(self):
-        args = getStripArgs(self.line)
-        assert len(args) == 4, "unknown args in for macrocommand"
+        if self.forer.canExecute():
+            args = getStripArgs(self.line)
+            assert len(args) == 4, "unknown args in for macrocommand"
 
-        if self.cicleSaver.findFor(self.thisIndex):
-            self.variables.deleteAreaOfVisibility()
+            forInfoIndex = self.forer.findFor(self.thisIndex)
+            forInfo: ForInfo
+
+            if forInfoIndex == -1:
+                # базовая инициализация
+
+                self.variables.newAreaOfVisibility()
+                self.variables.lastAreaOfVisibility(
+                )[args[0]] = processingLine(self.variables, args[1])
+                forInfo = self.forer.declareFor(self.thisIndex)
+            else:
+                # икрементирование
+                changeArg0 = processingLineCppGet(
+                    self.variables, processingLine(
+                        self.variables, f"{args[0]} + {args[3]}"), self.foutLines)
+
+                self.variables.deleteAreaOfVisibility()
+                self.variables.newAreaOfVisibility()
+                self.variables.lastAreaOfVisibility()[args[0]] = changeArg0
+                forInfo = self.forer.viewedCircles[forInfoIndex]
+
+            canForExecute = processingLine(
+                self.variables, f"{args[0]} < {args[2]}")
+
+            if not processingLineCppGet(self.variables, canForExecute, self.foutLines):
+                self.forer.deleteLastFor()
+                if isIndex(forInfo.indexEndFor):
+                    self.thisIndex = forInfo.indexEndFor
+                else:
+                    self.forer.resetCanExecute()
         else:
-            self.cicleSaver.declareFor(self.thisIndex)
-            self.variables.newAreaOfVisibility()
-            self.variables.lastAreaOfVisibility(
-            )[args[0]] = processingLine(self.variables, self.processingFor(args[1:]))
-
-        # print(args)
+            self.forer.counterFor += 1
 
     @ifelser_decorator
     def endforCommand(self):
-        self.cicleSaver.updateFor(self.thisIndex)
-        self.variables.deleteAreaOfVisibility()
-        pass
+        if not self.forer.canExecute():
+            self.forer.counterFor -= 1
+        if self.forer.counterFor == 0:
+            i = self.forer.findEndFor(self.thisIndex)
+            if i == -1:
+                self.forer.updateFor(self.thisIndex)
+            self.thisIndex = self.forer.lastFor().indexFor - 1
 
     @ifelser_decorator
     def foreachCommand(self):
@@ -293,8 +347,6 @@ class MacroFuncStack:
         self.variables.newAreaOfVisibility()
         self.variables.lastAreaOfVisibility(
         )[args[0]] = processingLine(self.variables, args[1])
-
-        # print(args)
         pass
 
     @ifelser_decorator
