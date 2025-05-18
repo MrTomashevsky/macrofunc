@@ -13,7 +13,10 @@ class IfElseInfo:
 
 # класс обработчик областей видимости
 class ConditionsSaver:
-    viewedConditions: list[IfElseInfo] = []
+    viewedConditions: list[IfElseInfo]
+
+    def __init__(self):
+        self.viewedConditions = []
 
     def pushIf(self, value):
         if len(self.viewedConditions) == 0 or self.viewedConditions[-1].pIf:
@@ -72,9 +75,14 @@ class ForInfo:
 
 
 class CicleSaver:
-    viewedCircles: list[ForInfo] = []
-    _canExecute: bool = True
-    counterFor: int = 0
+    viewedCircles: list[ForInfo]
+    _canExecute: bool
+    counterFor: int
+
+    def __init__(self):
+        self.viewedCircles = []
+        self._canExecute = True
+        self.counterFor = 0
 
     def findFor(self, thisIndex) -> int:
         for i, obj in enumerate(self.viewedCircles):

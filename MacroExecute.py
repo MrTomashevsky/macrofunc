@@ -9,7 +9,15 @@ from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macr
 from MacroExecuteSettings import ConditionsSaver, CicleSaver, isIndex, ForInfo
 
 
-TEMP_VAR_NAME = "\033"
+def findVariable(variables: Variables, varName: str):
+    for i in range(len(variables.variables)):
+        if variables.variables[i].get(varName) != None:
+            return i
+    return -1
+
+
+FOREACH_LIST = "\033"
+TEMP_VAR_NAMES = [FOREACH_LIST]
 
 
 def toRealType(s: str):
@@ -51,16 +59,31 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
 # функция обработки бездиррективной строки (вставка значений переменных, объединение лексем и тд)
 def processingLine(variables: Variables, line: str) -> str:
-    def isalnum(l: str, index: int):
-        return index < 0 and index >= len(l) or (index >= 0 and index < len(l) and l[index].isalnum())
+
+    def findWord(line: str, what: str) -> list[int]:
+        tmpIndex = 0
+        while True:
+            try:
+                tmpIndex = line.index(what, tmpIndex)
+                fw, lw = True, True
+                if tmpIndex > 0:
+                    fw = line[tmpIndex-1].isspace() or line[tmpIndex-1] == "#"
+                if tmpIndex + len(what) < len(line) - 1:
+                    lw = line[tmpIndex +
+                              len(what)].isspace() or line[tmpIndex + len(what)] == "#"
+                if fw and lw:
+                    return tmpIndex
+                tmpIndex += len(what)
+            except ValueError:
+                return -1
 
     for view in variables.variables:
         for var in view:
             if var != view[var]:
                 indexVar = 0
                 while indexVar != -1:
-                    indexVar = line.find(var)
-                    if indexVar != -1 and not isalnum(line, indexVar-1) and not isalnum(line, indexVar+len(var)+1):
+                    indexVar = findWord(line, var)
+                    if indexVar != -1:
 
                         l1 = line[:indexVar]
                         # l2 = processingLineCppGet(view[var])
@@ -70,7 +93,7 @@ def processingLine(variables: Variables, line: str) -> str:
                         while True:
                             revLine = l1[::-1].strip()
                             if index(revLine, "##") == 0:
-                                l1 = l1[:len(l1)-2]
+                                l1 = l1[:len(l1)-3]
                                 tmpLine = l1.split()
                                 l1 = l1[:len(l1)-1 -
                                         len(tmpLine[-1])] + " "
@@ -108,7 +131,7 @@ def processingLineCppGet(variables: Variables, expr: str, foutLines: list[LineSt
     value = None
     funcs = macroSpesFunctions(variables, foutLines)
     vars = {j: toRealType(i[j])
-            for i in variables.variables for j in i}
+            for i in variables.variables for j in i if j not in TEMP_VAR_NAMES}
     while True:
         try:
             value = eval(expr, funcs, vars)
@@ -155,6 +178,7 @@ class MacroFuncStack:
     ifelser: ConditionsSaver
     forer: CicleSaver
     foreacher: CicleSaver
+    funcName: str
 
     def printNameOfCommand(self, name):
         print("\033[37;2m", name, str(self.line), "\033[0m")
@@ -171,6 +195,11 @@ class MacroFuncStack:
         return self.initWithVariables(func, variables, foutLines, macroFunctions)
 
     def initWithVariables(self, func: MacroFunction, variables: Variables, foutLines: list[LineString], macroFunctions: ListMacroFunction):
+        self.funcName = func.name
+        if func.name == "create_functions":
+            pass
+        # print("\033[35;2m", func.name, func.args, "\033[0m")
+
         self.variables = variables
         self.foutLines = foutLines
 
@@ -218,6 +247,7 @@ class MacroFuncStack:
                     MacroFunc.BEGIN_COMMAND) + len(MacroFunc.BEGIN_COMMAND)+len(name):]
 
                 self.printNameOfCommand(name)
+                # print(findVariable(self.variables, FOREACH_LIST) != -1)
                 getattr(MacroFuncStack,
                         MacroFunc.CREATE_FUNC_COMMAND(name))(self)
 
@@ -281,8 +311,9 @@ class MacroFuncStack:
     @ifelser_decorator
     def errorCommand(self):
         if self.foutLines != None:
+            line = processingLine(self.variables, self.line.strip())
             self.foutLines.append(
-                LineString(-1, f"#if {self.line.strip()}\n   #error \"{self.line.strip()}\"\n#endif"))
+                LineString(-1, f"#if {line}\n   #error \"{line}\"\n#endif"))
 
     @foreacher_decorator
     @forer_decorator
@@ -366,7 +397,6 @@ class MacroFuncStack:
     @forer_decorator
     @ifelser_decorator
     def foreachCommand(self):
-
         if self.foreacher.canExecute():
             args = getStripArgs(self.line)
             assert len(args) == 2, "unknown args in foreach macrocommand"
@@ -380,7 +410,7 @@ class MacroFuncStack:
                 tmp = processingLine(self.variables, args[1]).split()
             else:
                 forInfo = self.foreacher.viewedCircles[forInfoIndex]
-                tmp = self.variables.lastAreaOfVisibility()[TEMP_VAR_NAME]
+                tmp = self.variables.lastAreaOfVisibility()[FOREACH_LIST]
                 self.variables.deleteAreaOfVisibility()
 
             if len(tmp) == 0:
@@ -391,7 +421,7 @@ class MacroFuncStack:
                     self.foreacher.resetCanExecute()
             else:
                 self.variables.newAreaOfVisibility()
-                self.variables.lastAreaOfVisibility()[TEMP_VAR_NAME] = tmp[1:]
+                self.variables.lastAreaOfVisibility()[FOREACH_LIST] = tmp[1:]
                 self.variables.lastAreaOfVisibility()[args[0]] = tmp[0]
         else:
             self.foreacher.counterFor += 1

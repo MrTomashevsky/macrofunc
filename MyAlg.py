@@ -61,3 +61,25 @@ def getArgs(args: str) -> list[str]:
 def getStripArgs(line: str):
     args = getArgs(line[1:len(line)-1])
     return [i.strip() for i in args]
+
+
+# def findIndexesWords(line: str, what: str) -> list[int]:
+#     result: list[int] = []
+#     tmpIndex = 0
+#     while True:
+#         try:
+#             tmpIndex = line.index(what, tmpIndex)
+#             fw, lw = True, True
+#             if tmpIndex > 0:
+#                 fw = line[tmpIndex-1].isspace() or line[tmpIndex-1] == "#"
+#             if tmpIndex + len(what) < len(line) - 1:
+#                 lw = line[tmpIndex +
+#                           len(what)].isspace() or line[tmpIndex + len(what)] == "#"
+#             if fw and lw:
+#                 result.append(tmpIndex)
+#             tmpIndex += len(what)
+#         except ValueError:
+#             break
+#     return result
+# print(findIndexesWords(
+#     "sizeof sizeof()#sizeof#sizeof assizeof sizeofl 1sizeof0", "sizeof"))

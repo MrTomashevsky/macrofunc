@@ -1,14 +1,13 @@
 ##macrofunc tmp() 
-    ##var(tmp, 0)
+    ##varline(tmp, 0)
 #define MACRO1 tmp
-    ##var(tmp, tmp + 3) 
+    ##varexpr(tmp, tmp + 3) 
 #define MACRO2 tmp
-    ##var(tmp, tmp + MACRO2)
+    ##varexpr(tmp, tmp + MACRO2)
 #define MACRO3 tmp 
-
-    ##var(cstr, #tmp)
+    ##varline(cstr, #tmp)
 #define MACRO4 cstr
-    ##var(cstr, L ## #tmp)
+    ##varline(cstr, L ## #tmp)
 #define MACRO5 cstr
 
 ##endmacrofunc
@@ -54,15 +53,15 @@
 ##macrofunc create_functions(count)
 int global[count];
 
-    ##for(VAR, 0, count, 1)
-void function ## VAR (void) { global[VAR]++; }
+    ##for(var, 0, count, 1)
+void function ## var (void) { global[var]++; }
     ##endfor
 
 void (*global_functions[count])(void) = {
 
-    ##for(VAR, 0, count, 1)
-    function ## VAR
-        ##if VAR != count - 1
+    ##for(var, 0, count, 1)
+    function ## var
+        ##if var != count - 1
     ,
         ##endif
     ##endfor
@@ -86,14 +85,14 @@ function2
 
 
 ##macrofunc create_functions(row_of_names)
-    ##foreach(VAR, row_of_names)
-void function ## VAR (void) { std::cout << VAR << std::endl; }
+    ##foreach(var, row_of_names)
+void function ## var (void) { std::cout << var << std::endl; }
     ##endforeach
 
-void (*global_functions[__SIZE_LIST__])(void) = {
-    ##foreach(VAR, row_of_names)
-    function ## VAR
-        ##if ! __IS_END_LIST__(row_of_names, VAR)
+void (*global_functions[__SIZE_LIST__(row_of_names)])(void) = {
+    ##foreach(var, row_of_names)
+    function ## var
+        ##if ! __IS_END_LIST__(row_of_names, var)
     ,
         ##endif
     ##endforeach
@@ -116,9 +115,9 @@ function2
 
 
 ##macrofunc is_macro(list)
-    ##foreach(VAR, list)
-        ##if ! __IS_MACRO__(row_of_names, VAR)
-#error "is not macro: " #VAR
+    ##foreach(var, list)
+        ##if ! __IS_MACRO__(row_of_names, var)
+#error "is not macro: " #var
         ##endif
     ##endforeach
 ##endmacrofunc
@@ -148,8 +147,8 @@ function2
 
 ##integrate hello_world()
 
-##macrofunc variables(v, t, h)
+##macrofunc varlineiables(v, t, h)
     ##error v t h
 ##endmacrofunc
 
-##integrate variables(8, 9, 7)
+##integrate varlineiables(8, 9, 7)
