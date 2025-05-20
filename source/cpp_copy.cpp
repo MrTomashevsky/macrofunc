@@ -38,7 +38,7 @@
 ##integrate creater(RAND_MACRO)
 // #define MACRO 1
 
-
+/*
 ##macrofunc int_is_4_bytes(sizeof)
     ##error sizeof == 4
 ##endmacrofunc
@@ -49,7 +49,7 @@
 #error "sizeof(int) == 4"
 #endif
 */
-
+/
 ##macrofunc create_functions(count)
 int global[count];
 
@@ -88,6 +88,7 @@ function2
     ##foreach(var, row_of_names)
 void function ## var (void) { std::cout << var << std::endl; }
     ##endforeach
+
 
 void (*global_functions[__SIZE_LIST__(row_of_names)])(void) = {
     ##foreach(var, row_of_names)

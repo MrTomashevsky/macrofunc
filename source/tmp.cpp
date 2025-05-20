@@ -1,32 +1,24 @@
-##macrofunc inter(ROW)
 
-##varexpr(LEN, __SIZE_LIST__(ROW))
-const int iota##LEN  [LEN] = {
-##foreach(VAR, ROW)
-    VAR,
-##endforeach
-};
+
+##macrofunc function_change_global_value_g(COUNT)
+
+    ##for(COUNTER, 0, COUNT, 1)
+    void __function_change_global_value_g##COUNTER##__() { g[COUNTER]++; }
+    ##endfor
+
+
+    void (*__function_change_global_value_g_array_[COUNT])(void) = {
+    ##for(COUNTER, 0, COUNT, 1)
+        __function_change_global_value_g ## COUNTER ## __ 
+        ##if COUNTER != COUNT - 1
+            ,
+        ##endif
+    ##endfor
+    };
+
+
 ##endmacrofunc
 
-// ##integrate inter(10 324)
+#define HAHA 5
 
-
-##macrofunc ma(COUNT)
-#define HELLO \
-##if COUNT == 1
-true
-##elif COUNT ==2
-##else
-false
-##endif
-##if COUNT == 1
-true
-##elif COUNT ==2
-##else
-false
-##endif
-##endmacrofunc
-
-##integrate ma(1)
-
-##integrate ma(2)
+##integrate function_change_global_value_g(HAHA)

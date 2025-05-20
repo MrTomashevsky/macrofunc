@@ -73,18 +73,19 @@ def help(args: list):
     end = "\033[0m"
     print(
         f"""{blueBegin}Использование:{end}
-  {macroFuncBegin}{nameProg}{end}[ключи] файл.
+  {macroFuncBegin}{nameProg}{end} [ключи] файл.
 
 {blueBegin}Описание:{end}
-  {macroFuncBegin}{nameProg}{end} - это программа интерпретатора {macroFuncBegin}MacroFunc{end}. На вход подаётся обрабатываемый файл.
+  {macroFuncBegin}{nameProg}{end} - это программа интерпретатора {macroFuncBegin}MacroFunc{end}.
+              На вход подаётся обрабатываемый файл.
 
 {blueBegin}Ключи:{end}
-  -h, --help                             Вывести справку.
-  --def_cstr_literals <файл>             Расположение файла литералов с-строк.
-  -o <файл>                              Направить вывод в файл.
-
-{blueBegin}Автор:{end}
-  Никита Томашевский, 2025, https://github.com/MrTomashevsky/macrofunc""")
+  -h, --help                  Вывести справку.
+  --def_cstr_literals <файл>  Расположение файла литералов с-строк.
+  -o <файл>                   Направить вывод в файл.
+""")
+    # {blueBegin}Автор:{end}
+    # Никита Томашевский, 2025, https://github.com/MrTomashevsky/macrofunc
     exit(0)
 
 

@@ -63,6 +63,72 @@ def getStripArgs(line: str):
     return [i.strip() for i in args]
 
 
+def delete2Charp(line: str):
+    def lastAlNumLowUnderlin(line: str, start: int = 0, end: int = -1):
+        if end == -1:
+            end = len(line)
+        for i in range(end, start, -1):
+            if line[i].isalnum() or line[i] == "_":
+                return i
+        return start
+
+    def firstAlNumLowUnderlin(line: str, start: int = 0, end: int = -1):
+        if end == -1:
+            end = len(line)
+        for i in range(start, end):
+            if line[i].isalnum() or line[i] == "_":
+                return i
+        return end
+
+    while True:
+        ind = index(line, "##")
+        if ind == -1:
+            break
+        lastInd = lastAlNumLowUnderlin(line, 0, ind)+1
+        firstInd = firstAlNumLowUnderlin(line, ind + 2, -1)
+
+        line = line[:lastInd] + line[firstInd:]
+    return line
+
+
+def inListPermissibleCharasters(symb: str) -> bool:
+    return not symb.isalnum() and not symb.isspace()
+
+
+def findWord(line: str, startIndex: int, what: str) -> int:
+    while True:
+        try:
+            startIndex = line.index(what, startIndex)
+            fw, lw = True, True
+            if startIndex > 0:
+                fw = line[startIndex -
+                          1].isspace() or inListPermissibleCharasters(line[startIndex-1])
+            if startIndex + len(what) < len(line) - 1:
+                lw = line[startIndex +
+                          len(what)].isspace() or inListPermissibleCharasters(line[startIndex + len(what)])
+            if fw and lw:
+                return startIndex
+            startIndex += len(what)
+        except ValueError:
+            return -1
+
+
+def findFunction(line: str, startIndex: int, what: str) -> int:
+    while True:
+        try:
+            startIndex = line.index(what, startIndex)
+            fw, lw = True, True
+            if startIndex > 0:
+                fw = line[startIndex -
+                          1].isspace() or inListPermissibleCharasters(line[startIndex-1])
+            if startIndex + len(what) < len(line) - 1:
+                lw = line[startIndex + len(what)] == "("
+            if fw and lw:
+                return startIndex
+            startIndex += len(what)
+        except ValueError:
+            return -1
+
 # def findIndexesWords(line: str, what: str) -> list[int]:
 #     result: list[int] = []
 #     tmpIndex = 0

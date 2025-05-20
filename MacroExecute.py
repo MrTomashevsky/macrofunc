@@ -58,33 +58,44 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
 
 # функция обработки бездиррективной строки (вставка значений переменных, объединение лексем и тд)
-def processingLine(variables: Variables, line: str) -> str:
+def processingLine(variables: Variables, line: str, foutLines: list[LineString]) -> str:
+    assert False, """доделай"""
+    funcs = macroSpesFunctions(variables, foutLines)
 
-    def findWord(line: str, what: str) -> list[int]:
-        tmpIndex = 0
-        while True:
-            try:
-                tmpIndex = line.index(what, tmpIndex)
-                fw, lw = True, True
-                if tmpIndex > 0:
-                    fw = line[tmpIndex-1].isspace() or line[tmpIndex-1] == "#"
-                if tmpIndex + len(what) < len(line) - 1:
-                    lw = line[tmpIndex +
-                              len(what)].isspace() or line[tmpIndex + len(what)] == "#"
-                if fw and lw:
-                    return tmpIndex
-                tmpIndex += len(what)
-            except ValueError:
-                return -1
+    for funcName in funcs:
+        indexVar = 0
+        while indexVar != -1:
+            indexVar = findFunction(line, indexVar, var)
+            if indexVar != -1:
+                l1 = line[:indexVar]
+                # l2 = processingLineCppGet(view[var])
+                l2 = str(view[var])
+                l3 = line[indexVar+len(var):]
+
+                while True:
+                    revLine = l1[::-1].strip()
+                    if index(revLine, "##") == 0:
+                        l1 = l1[:len(l1)-3]
+                        tmpLine = l1.split()
+                        l1 = l1[:len(l1)-1 -
+                                len(tmpLine[-1])] + " "
+                        l2 = tmpLine[-1]+l2
+                    elif index(revLine, "#") == 0:
+                        l1 = l1[:len(l1)-2]
+                        l2 = "\""+l2+"\""
+                    else:
+                        break
+
+                line = l1+l2+l3
+                indexVar += len(var)
 
     for view in variables.variables:
         for var in view:
             if var != view[var]:
                 indexVar = 0
                 while indexVar != -1:
-                    indexVar = findWord(line, var)
+                    indexVar = findWord(line, indexVar, var)
                     if indexVar != -1:
-
                         l1 = line[:indexVar]
                         # l2 = processingLineCppGet(view[var])
                         l2 = str(view[var])
@@ -105,6 +116,12 @@ def processingLine(variables: Variables, line: str) -> str:
                                 break
 
                         line = l1+l2+l3
+                        indexVar += len(var)
+
+    tmpLine = ""
+    while line != tmpLine:
+        tmpLine = line
+        line = delete2Charp(line)
 
     return line
 
@@ -255,7 +272,7 @@ class MacroFuncStack:
 
             if ind == MacroFunc.IS_NOT_DIRECTIVE and self.ifelser.canExecute():
                 foutLines.append(LineString(
-                    func.txt[i].numb, processingLine(self.variables, func.txt[i].line)))
+                    func.txt[i].numb, processingLine(self.variables, func.txt[i].line, self.foutLines)))
 
             i += 1
         assert countNoClosedMacroFuncs == 0, f"{countNoClosedMacroFuncs} not closed macrofunction!"
@@ -311,7 +328,8 @@ class MacroFuncStack:
     @ifelser_decorator
     def errorCommand(self):
         if self.foutLines != None:
-            line = processingLine(self.variables, self.line.strip())
+            line = processingLine(
+                self.variables, self.line.strip(), self.foutLines)
             self.foutLines.append(
                 LineString(-1, f"#if {line}\n   #error \"{line}\"\n#endif"))
 
@@ -341,7 +359,7 @@ class MacroFuncStack:
         assert len(args) == 2, "unknown args in for macrocommand"
 
         self.variables.lastAreaOfVisibility(
-        )[args[0]] = processingLine(self.variables, args[1])
+        )[args[0]] = processingLine(self.variables, args[1], self.foutLines)
 
     @foreacher_decorator
     @ifelser_decorator
@@ -358,13 +376,13 @@ class MacroFuncStack:
 
                 self.variables.newAreaOfVisibility()
                 self.variables.lastAreaOfVisibility(
-                )[args[0]] = processingLine(self.variables, args[1])
+                )[args[0]] = processingLine(self.variables, args[1], self.foutLines)
                 forInfo = self.forer.declareFor(self.thisIndex)
             else:
                 # икрементирование
                 changeArg0 = processingLineCppGet(
                     self.variables, processingLine(
-                        self.variables, f"{args[0]} + {args[3]}"), self.foutLines)
+                        self.variables, f"{args[0]} + {args[3]}", self.foutLines), self.foutLines)
 
                 self.variables.deleteAreaOfVisibility()
                 self.variables.newAreaOfVisibility()
@@ -372,7 +390,8 @@ class MacroFuncStack:
                 forInfo = self.forer.viewedCircles[forInfoIndex]
 
             canForExecute = processingLine(
-                self.variables, f"{args[0]} < {args[2]}")
+                self.variables, f"{args[0]} != {args[2]}", self.foutLines)
+            # добавить для float
 
             if not processingLineCppGet(self.variables, canForExecute, self.foutLines):
                 self.forer.deleteLastFor()
@@ -407,7 +426,8 @@ class MacroFuncStack:
 
             if forInfoIndex == -1:
                 forInfo = self.foreacher.declareFor(self.thisIndex)
-                tmp = processingLine(self.variables, args[1]).split()
+                tmp = processingLineCppGet(
+                    self.variables, args[1], self.foutLines).split()
             else:
                 forInfo = self.foreacher.viewedCircles[forInfoIndex]
                 tmp = self.variables.lastAreaOfVisibility()[FOREACH_LIST]
@@ -448,9 +468,8 @@ def getVariablesWithCppGet(func: MacroFunction, listArgs: list[str], foutLines: 
                            for i in range(len(listArgs))})
     return variables
 
+
 # исполнение макрофункции
-
-
 def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString], getMacroWithCppGet=False):
 
     name, args = MacroFunc.getNameAndArgsMacroCommand(line)

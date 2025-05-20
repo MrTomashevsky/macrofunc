@@ -145,11 +145,9 @@ def create__IS_ITEM_LIST__(variables: Variables):
 
 def create__INDEX__(variables: Variables):
     def f(lst, var):
-        error_if_is_not_list(var, variables)
-        ind = index(lst.split(), var)
-        if ind == -1:
-            return ""
-        return f"{ind}"
+        # error_if_is_not_list(var, variables)
+
+        return f"{index(lst.split(), var)}"
     return f
 
 
