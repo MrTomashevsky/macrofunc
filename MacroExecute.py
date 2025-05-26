@@ -59,18 +59,21 @@ def startMacroFunc(lines: TextMacroFunction, macroFunctions: ListMacroFunction, 
 
 # функция обработки бездиррективной строки (вставка значений переменных, объединение лексем и тд)
 def processingLine(variables: Variables, line: str, foutLines: list[LineString]) -> str:
-    assert False, """доделай"""
+    # assert False, """доделай"""
     funcs = macroSpesFunctions(variables, foutLines)
 
     for funcName in funcs:
         indexVar = 0
         while indexVar != -1:
-            indexVar = findFunction(line, indexVar, var)
+            indexVar = findFunction(line, indexVar, funcName)
             if indexVar != -1:
                 l1 = line[:indexVar]
-                # l2 = processingLineCppGet(view[var])
-                l2 = str(view[var])
-                l3 = line[indexVar+len(var):]
+                # l2 = processingLineCppGet(view[funcName])
+
+                args, sizeArgs = getArgsSpecFunction(line)
+
+                l2 = str(funcs[funcName](args))
+                l3 = line[indexVar+len(funcName)+sizeArgs:]
 
                 while True:
                     revLine = l1[::-1].strip()
@@ -87,7 +90,7 @@ def processingLine(variables: Variables, line: str, foutLines: list[LineString])
                         break
 
                 line = l1+l2+l3
-                indexVar += len(var)
+                indexVar += len(funcName)+sizeArgs
 
     for view in variables.variables:
         for var in view:
@@ -473,6 +476,7 @@ def getVariablesWithCppGet(func: MacroFunction, listArgs: list[str], foutLines: 
 def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: list[LineString], getMacroWithCppGet=False):
 
     name, args = MacroFunc.getNameAndArgsMacroCommand(line)
+
     listArgs = getArgs(args)
 
     # print(f"\033[34m{name, listArgs}\033[0m")
@@ -489,6 +493,8 @@ def integrate(macroFunctions: ListMacroFunction, line: LineString, foutLines: li
             execute = MacroFuncStack()
 
             if getMacroWithCppGet:
+                if name == "create_functions":
+                    pass
                 variables = getVariablesWithCppGet(
                     func, listArgs, foutLines)
                 execute.initWithVariables(

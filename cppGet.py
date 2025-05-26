@@ -22,7 +22,10 @@ def isDef(lines: list[str], macroName: str) -> bool:
     tailCommand = subprocess.run(
         f"tail -n 1 {tmpInputFile2.name}", shell=True, capture_output=True, text=True)
 
-    return tailCommand.stdout[:-1] == "1"
+    value = tailCommand.stdout[:-1]
+    # assert value == "1" or value == "0", f"program error: unknown value '{value}'"
+
+    return value == "1"
 
 
 # получить значение макроса

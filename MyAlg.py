@@ -129,6 +129,57 @@ def findFunction(line: str, startIndex: int, what: str) -> int:
         except ValueError:
             return -1
 
+
+# парсинг аргументов из строки вида "arg1, arg2, arg3" и тд
+# отличается от getArgs тем, что смотрит не всю строку
+# а до )
+# на примере:
+# getArgsSpecFunction(" a , asd , das) ksdklsd") == (['a', 'asd', 'das'], len(" a , asd , das)"))
+def getArgsSpecFunction(args: str) -> tuple[list[str], int]:
+    returnValue: list[str] = []
+    countNoClosedRoundBracket = 0
+    countNoClosedQuotes = False
+    count = 0
+
+    for charaster in args:
+        if countNoClosedRoundBracket == 0 and countNoClosedQuotes == False and charaster == ",":
+            returnValue.append("")
+        else:
+            if len(returnValue) == 0:
+                returnValue.append(charaster)
+            else:
+                returnValue[-1] += charaster
+
+        if charaster == "\\":
+            pass
+
+        if charaster == "\"":
+
+            if returnValue[-1][len(returnValue[-1])-2] == "\\":
+                returnValue[-1] = returnValue[-1][:len(returnValue[-1])-2]
+
+                returnValue[-1] += "\""
+            else:
+                countNoClosedQuotes = not countNoClosedQuotes
+
+        if countNoClosedQuotes == False:
+            if charaster == "(":
+                countNoClosedRoundBracket += 1
+            elif charaster == ")":
+                countNoClosedRoundBracket -= 1
+                if countNoClosedRoundBracket == -1:
+                    returnValue[-1] = returnValue[-1][:-1]
+                    break
+        count += 1
+
+    returnValue = [value.strip() for value in returnValue]
+
+    # assert countNoClosedRoundBracket == 0, "not closed round bracket " + args
+    assert countNoClosedQuotes == False, "not closed quotes"
+
+    return (returnValue, count)
+
+
 # def findIndexesWords(line: str, what: str) -> list[int]:
 #     result: list[int] = []
 #     tmpIndex = 0

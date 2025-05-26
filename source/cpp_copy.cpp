@@ -38,18 +38,8 @@
 ##integrate creater(RAND_MACRO)
 // #define MACRO 1
 
-/*
-##macrofunc int_is_4_bytes(sizeof)
-    ##error sizeof == 4
-##endmacrofunc
-// ...
-##integrate int_is_4_bytes(sizeof(int)) 
-/*
-#if sizeof(int) == 4
-#error "sizeof(int) == 4"
-#endif
-*/
-/
+
+
 ##macrofunc create_functions(count)
 int global[count];
 

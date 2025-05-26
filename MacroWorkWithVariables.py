@@ -49,13 +49,15 @@ def is_var(var: MacroVariable, variables: Variables) -> bool:
 
 
 def macro_value(var: MacroVariable, foutLines: list[LineString]) -> str:
-    return cppGet.value([i.line+"\n" for i in foutLines if i.line !=
-                         "" and not i.line.isspace()], var)
+    text = [i.line+"\n" for i in foutLines if i.line !=
+            "" and not i.line.isspace()]
+    return cppGet.value(text, var)
 
 
 def is_macro(var: MacroVariable, foutLines: list[LineString]) -> bool:
-    return cppGet.isDef([i.line+"\n" for i in foutLines if i.line !=
-                         "" and not i.line.isspace()], var)
+    text = [i.line+"\n" for i in foutLines if i.line !=
+            "" and not i.line.isspace()]
+    return cppGet.isDef(text, var)
 
 
 def create__IS_VOID__(variables: Variables):

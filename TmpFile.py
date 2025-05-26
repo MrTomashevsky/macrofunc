@@ -19,3 +19,6 @@ class TmpFileCpp:
     def delete(self):
         self.clear()
         self.TF.close()
+
+    def __del__(self):
+        self.delete()
