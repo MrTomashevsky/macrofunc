@@ -1,4 +1,4 @@
-##macrofunc tmp() 
+/*##macrofunc tmp() 
     ##varline(tmp, 0)
 #define MACRO1 tmp
     ##varexpr(tmp, tmp + 3) 
@@ -21,7 +21,7 @@
 #define MACRO5 L"6"
 */
 
-
+/*
 ##macrofunc creater(macro_name)
     ##if macro_name == IO_MACRO
 #define MACRO 0
@@ -73,7 +73,7 @@ function2
 */
 
 
-
+/*
 ##macrofunc create_functions(row_of_names)
     ##foreach(var, row_of_names)
 void function ## var (void) { std::cout << var << std::endl; }
@@ -104,7 +104,7 @@ function2
 };
 */
 
-
+#include <iostream>
 ##macrofunc is_macro(list)
     ##foreach(var, list)
         ##if ! __IS_MACRO__(row_of_names, var)
@@ -119,7 +119,7 @@ function2
 #error "is not macro: 400"
 */
 
-
+/*
 
 
 ##macrofunc hello_world()

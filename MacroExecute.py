@@ -5,7 +5,7 @@ from MacroFunc import LineString
 from MacroFunction import *
 from MyAlg import *
 from cppGet import *
-from MacroWorkWithVariables import Variables, macroSpesFunctions, is_macro, macro_value
+from MacroWorkWithVariables import cppGetVariable,  Variables, macroSpesFunctions, is_macro, macro_value
 from MacroExecuteSettings import ConditionsSaver, CicleSaver, isIndex, ForInfo
 
 
@@ -18,6 +18,17 @@ def findVariable(variables: Variables, varName: str):
 
 FOREACH_LIST = "\033"
 TEMP_VAR_NAMES = [FOREACH_LIST]
+
+
+def getVariable(variables: Variables, varValue: str, foutLines: list[LineString]):
+    if is_macro(varValue, foutLines):
+        return macro_value(varValue, foutLines)
+    else:
+        ind = findVariable(variables, varValue)
+        if ind == -1:
+            return varValue
+        else:
+            return variables.variables[ind][varValue]
 
 
 def toRealType(s: str):
@@ -70,10 +81,12 @@ def processingLine(variables: Variables, line: str, foutLines: list[LineString])
                 l1 = line[:indexVar]
                 # l2 = processingLineCppGet(view[funcName])
 
-                args, sizeArgs = getArgsSpecFunction(line)
+                args, sizeArgs = getArgsSpecFunction(
+                    line[indexVar+len(funcName)+1:])
 
-                l2 = str(funcs[funcName](args))
-                l3 = line[indexVar+len(funcName)+sizeArgs:]
+                l2 = str(funcs[funcName](
+                    [getVariable(variables, i, foutLines) for i in args]))
+                l3 = line[indexVar+len(funcName)+sizeArgs+2:]
 
                 while True:
                     revLine = l1[::-1].strip()
@@ -462,12 +475,8 @@ class MacroFuncStack:
 
 
 def getVariablesWithCppGet(func: MacroFunction, listArgs: list[str], foutLines: list[LineString]):
-    def cppGetVariable(varValue):
-        if is_macro(varValue, foutLines):
-            return macro_value(varValue, foutLines)
-        return varValue
 
-    variables = Variables({func.args[i]: cppGetVariable(listArgs[i])
+    variables = Variables({func.args[i]: cppGetVariable(listArgs[i], foutLines)
                            for i in range(len(listArgs))})
     return variables
 

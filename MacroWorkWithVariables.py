@@ -9,7 +9,14 @@ class MacroVariablesException(Exception):
     pass
 
 
+def cppGetVariable(varValue: str, foutLines: list[LineString]):
+    if is_macro(varValue, foutLines):
+        return macro_value(varValue, foutLines)
+    return varValue
+
 # класс, занимающийся хранением и осуществлением доступа к переменным в разных областях видимости
+
+
 class Variables:
     type VarDict = dict[str, str]
 
@@ -132,7 +139,9 @@ def create__SIZE_LIST__():
 
 def create__IS_END_LIST__(variables: Variables):
     # error_if_is_not_list(var, variables) and
-    return lambda lst, var:  var == lst.split()[-1]
+    def f(lst, var):
+        return str(var) == lst.split()[-1]
+    return f
 
 
 def create__IS_BEGIN_LIST__(variables: Variables):
